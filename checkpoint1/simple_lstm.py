@@ -21,11 +21,11 @@ w2i_target = defaultdict(lambda: len(w2i_target))
 # read data set
 # input file format is "word1 word2 ..."
 def read_dataset(source_file, target_file):
-	with open(source_file, "r", encoding='utf-8', errors='ignore') as s_file, open(target_file, "r", encoding='utf-8', errors='ignore') as t_file:
-		for source_line, target_line in zip(s_file, t_file):
-			sent_src = [w2i_source[x] for x in source_line.strip().split(" ") + ['</s>']]
-			sent_trg = [w2i_target[x] for x in ['<s>'] + target_line.strip().split(" ") + ['</s>']] 
-			yield (sent_src, sent_trg)
+    with open(source_file, "r", encoding='utf-8', errors='ignore') as s_file, open(target_file, "r", encoding='utf-8', errors='ignore') as t_file:
+        for source_line, target_line in zip(s_file, t_file):
+            sent_src = [w2i_source[x] for x in source_line.strip().split(" ") + ['</s>']]
+            sent_trg = [w2i_target[x] for x in ['<s>'] + target_line.strip().split(" ") + ['</s>']] 
+            yield (sent_src, sent_trg)
 
 # -------------------------
 # read training data
@@ -33,24 +33,24 @@ def read_dataset(source_file, target_file):
 use_django = False
 use_hs = True
 if use_django:
-	train_source_file = "django_dataset/query_train_.txt"
-	train_target_file = "django_dataset/tree_train_.txt"
+    train_source_file = "django_dataset/query_train_.txt"
+    train_target_file = "django_dataset/tree_train_.txt"
 
-	#train_source_file = "django_dataset/query_dev_.txt"
-	#train_target_file = "django_dataset/tree_dev_.txt"
-	dev_source_file = "django_dataset/query_dev_.txt"
-	dev_target_file = "django_dataset/tree_dev_.txt"
-	test_source_file = "django_dataset/query_test_.txt"
-	test_target_file = "django_dataset/tree_test_.txt"
+    #train_source_file = "django_dataset/query_dev_.txt"
+    #train_target_file = "django_dataset/tree_dev_.txt"
+    dev_source_file = "django_dataset/query_dev_.txt"
+    dev_target_file = "django_dataset/tree_dev_.txt"
+    test_source_file = "django_dataset/query_test_.txt"
+    test_target_file = "django_dataset/tree_test_.txt"
 
 if use_hs:
-	train_source_file = "hs_dataset/query_hs_train_.txt"
-	train_target_file = "hs_dataset/tree_hs_train_.txt"
+    train_source_file = "hs_dataset/query_hs_train_.txt"
+    train_target_file = "hs_dataset/tree_hs_train_.txt"
 
-	dev_source_file = "hs_dataset/query_hs_dev_.txt"
-	dev_target_file = "hs_dataset/tree_hs_dev_.txt"
-	test_source_file = "hs_dataset/query_hs_test_.txt"
-	test_target_file = "hs_dataset/tree_hs_test_.txt"
+    dev_source_file = "hs_dataset/query_hs_dev_.txt"
+    dev_target_file = "hs_dataset/tree_hs_dev_.txt"
+    test_source_file = "hs_dataset/query_hs_test_.txt"
+    test_target_file = "hs_dataset/tree_hs_test_.txt"
 
 read_dataset(train_source_file, train_target_file)
 train = list(read_dataset(train_source_file, train_target_file))
@@ -184,7 +184,9 @@ def generate(sent):
         trg_sent.append(i2w_target[next_word])
     return trg_sent
 
-for ITER in range(50):
+ITERATION = 50
+print("iteration: " + str(ITERATION))
+for ITER in range(ITERATION):
   # Perform training
   train.sort(key=lambda t: len(t[0]), reverse=True)
   dev.sort(key=lambda t: len(t[0]), reverse=True)
@@ -203,7 +205,6 @@ for ITER in range(50):
       print("--finished %r sentences" % (sent_id+1))
   print("iter %r: train loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
 
-  '''
   # Evaluate on dev set
   dev_words, dev_loss = 0, 0.0
   start = time.time()
@@ -213,12 +214,13 @@ for ITER in range(50):
     dev_words += len(sent)
     trainer.update()
   print("iter %r: dev loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, dev_loss/dev_words, math.exp(dev_loss/dev_words), time.time()-start))
-  '''
 
 #generate parse tree
+writer = open("output_tree.txt", 'w')
 sentences = []
 for sent_id, sent in enumerate(test):
     translated_sent = generate(sent[0])
     sentences.append(translated_sent)
 for sent in sentences:
-    print(sent)
+    writer.write(sent+"\n")
+writer.close()

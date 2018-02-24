@@ -31,9 +31,9 @@ def read_dataset(source_file, target_file):
 # read training data
 # -------------------------
 use_django = False
-use_django = False
 
 if use_django:
+    modulo = 1000
     print("Using Django dataset...")
     train_source_file = "django_dataset/django.train.desc"
     train_target_file = "django_dataset/django.train.code"
@@ -42,6 +42,7 @@ if use_django:
     test_source_file = "django_dataset/django.test.desc"
     test_target_file = "django_dataset/django.test.code"
 else:
+    modulo = 100
     print("Using HS dataset...")
     train_source_file = "hs_dataset/hs.train.desc"
     train_target_file = "hs_dataset/hs.train.code"
@@ -268,8 +269,9 @@ for ITER in range(ITERATION):
     train_words += len(sent)
     my_loss.backward()
     trainer.update()
-    if (sent_id+1) % 100 == 0:
+    if (sent_id+1) % modulo == 0:
       print("--finished %r sentences" % (sent_id+1))
+      print("iter %r: train loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
   print("iter %r: train loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
 
   # Evaluate on dev set

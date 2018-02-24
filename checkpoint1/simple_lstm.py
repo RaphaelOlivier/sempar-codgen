@@ -111,8 +111,8 @@ model = dy.ParameterCollection()
 trainer = dy.AdamTrainer(model)
 
 NUM_LAYERS = 1
-EMBED_SIZE = 64
-HIDDEN_SIZE = 256
+EMBED_SIZE = 128
+HIDDEN_SIZE = 128
 BATCH_SIZE = 16
 
 # Lookup parameters for word embeddings -  creates a embedding matrix
@@ -125,8 +125,6 @@ TARGET_LSTM_BUILDER = dy.VanillaLSTMBuilder(NUM_LAYERS, EMBED_SIZE, HIDDEN_SIZE,
 
 W_softmax = model.add_parameters((num_of_words_target, HIDDEN_SIZE))
 bias_softmax = model.add_parameters((num_of_words_target))
-
-MAX_SENT_SIZE = 50
 
 # Creates batches where all source sentences are the same length 
 def create_batches(sorted_dataset, max_batch_size):
@@ -201,8 +199,9 @@ def generate(sent):
     src_output = init_state_src.add_inputs([LOOKUP_SOURCE[x] for x in src])[-1].output()
 
     #generate until a eos tag or max is reached
-    current_state = TARGET_LSTM_BUILDER.initial_state().set_s([src_output, dy.tanh(src_output)])
+    #current_state = TARGET_LSTM_BUILDER.initial_state().set_s([src_output, dy.tanh(src_output)])
 
+    current_state = TARGET_LSTM_BUILDER.initial_state().set_s([src_output, src_output])
     prev_word = sos_target
     trg_sent = []
     W_sm = dy.parameter(W_softmax)
@@ -246,9 +245,10 @@ def shuffle_data(train, max_batch_size):
         shuffle_data.append(train[i])
     return shuffle_data
 
-
 ITERATION = 20
 print("iteration: " + str(ITERATION))
+lowest_dev_loss = float("inf")
+decreasing_counter = 0
 for ITER in range(ITERATION):
   # Perform training # sorting based on the length of training data
   train.sort(key=lambda t: len(t[0]), reverse=True)
@@ -256,9 +256,9 @@ for ITER in range(ITERATION):
   #train_order = create_batches(train, BATCH_SIZE) 
   #dev_order = create_batches(dev, BATCH_SIZE)
 
-  print (len(train))
+  #print (len(train))
   shuffled_train = shuffle_data(train, BATCH_SIZE)
-  print (len(train))
+  #print (len(train))
   #random.shuffle(train)
 
   train_words, train_loss = 0, 0.0
@@ -282,7 +282,21 @@ for ITER in range(ITERATION):
     dev_loss += my_loss.value()
     dev_words += len(sent)
     trainer.update()
-  print("iter %r: dev loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, dev_loss/dev_words, math.exp(dev_loss/dev_words), time.time()-start))
+  dev_loss_per_word = dev_loss/dev_words
+  print("iter %r: dev loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, dev_loss_per_word, math.exp(dev_loss/dev_words), time.time()-start))
+  if lowest_dev_loss > dev_loss_per_word:
+    lowest_dev_loss = dev_loss_per_word
+  else:
+    decreasing_counter += 1
+
+  if decreasing_counter == 2:
+    print("old learning rate: " + str(trainer.learning_rate))
+    trainer.learning_rate = trainer.learning_rate/2.0
+    print("new learning rate: " + str(trainer.learning_rate))
+    decreasing_counter = 0
+
+
+
 #generate parse tree
 writer = open("output_tree.txt", 'w')
 sentences = []

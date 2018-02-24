@@ -54,6 +54,7 @@ if use_hs:
 
 read_dataset(train_source_file, train_target_file)
 train = list(read_dataset(train_source_file, train_target_file))
+#print (train[0])
 unk_source = w2i_source["<unk>"]
 eos_source = w2i_source['</s>']
 w2i_source = defaultdict(lambda: unk_source, w2i_source)
@@ -70,8 +71,8 @@ print("Target vocabulary size: {}".format(num_of_words_target))
 
 dev = list(read_dataset(dev_source_file, dev_target_file))
 test = list(read_dataset(test_source_file, test_target_file))
-
 # start Dynet and define trainer
+
 model = dy.ParameterCollection()
 trainer = dy.AdamTrainer(model)
 
@@ -80,7 +81,7 @@ EMBED_SIZE = 64
 HIDDEN_SIZE = 256
 BATCH_SIZE = 16
 
-# Lookup parameters for word embeddings
+# Lookup parameters for word embeddings -  creates a embedding matrix
 LOOKUP_SOURCE = model.add_lookup_parameters((num_of_words_source, EMBED_SIZE))
 LOOKUP_TARGET = model.add_lookup_parameters((num_of_words_target, EMBED_SIZE))
 
@@ -93,7 +94,7 @@ bias_softmax = model.add_parameters((num_of_words_target))
 
 MAX_SENT_SIZE = 50
 
-# Creates batches where all source sentences are the same length
+# Creates batches where all source sentences are the same length 
 def create_batches(sorted_dataset, max_batch_size):
     source = [x[0] for x in sorted_dataset]
     src_lengths = [len(x) for x in source]
@@ -103,7 +104,7 @@ def create_batches(sorted_dataset, max_batch_size):
     batch_size = 1
     for i in range(1, len(src_lengths)):
         if src_lengths[i] != prev or batch_size == max_batch_size:
-            batches.append((prev_start, batch_size))
+            batches.append((prev_start, batch_size)) # creates a batch when a different length sentence is obtained
             prev = src_lengths[i]
             prev_start = i
             batch_size = 1
@@ -124,10 +125,13 @@ def calc_loss(sent):
 
     #get the output of the first LSTM
     src_output = init_state_src.add_inputs([LOOKUP_SOURCE[x] for x in src])[-1].output()
+    # bascially - forward prop  - encoder output 
     #now step through the output sentence
     all_losses = []
 
-    current_state = TARGET_LSTM_BUILDER.initial_state().set_s([src_output, dy.tanh(src_output)])
+    #current_state = TARGET_LSTM_BUILDER.initial_state().set_s([src_output, dy.tanh(src_output)])
+    current_state = TARGET_LSTM_BUILDER.initial_state().set_s([src_output, src_output])
+    # actiavtion over the output 
     prev_word = trg[0]
     W_sm = dy.parameter(W_softmax)
     b_sm = dy.parameter(bias_softmax)
@@ -158,7 +162,7 @@ def generate(sent):
     #initialize the LSTM
     init_state_src = SOURCE_LSTM_BUILDER.initial_state()
 
-    #get the output of the first LSTM
+    #get the output of the first LSTM # gets the embedding of every word  - 
     src_output = init_state_src.add_inputs([LOOKUP_SOURCE[x] for x in src])[-1].output()
 
     #generate until a eos tag or max is reached
@@ -184,14 +188,47 @@ def generate(sent):
         trg_sent.append(i2w_target[next_word])
     return trg_sent
 
-ITERATION = 50
+def shuffle_data(train, max_batch_size):
+    source = [x[0] for x in train]
+    src_lengths = [len(x) for x in source]
+    batches = {}
+    prev = src_lengths[0]
+    prev_start = 0
+    batch_size = 1
+    for i in range(1, len(src_lengths)):
+        if src_lengths[i] != prev or batch_size == max_batch_size:
+            batch =  [x for x in range(prev_start, prev_start+batch_size)]
+            batches[prev] = batch # creates a batch when a different length sentence is obtained
+            prev = src_lengths[i]
+            prev_start = i
+            batch_size = 1
+        else:
+            batch_size += 1
+    for batch in batches:
+        random.shuffle(batches[batch])
+    keys = list(batches.keys())
+    random.shuffle(keys)
+    shuffled_train_list = [] # indexes of the samples
+    for key in keys:
+        list_samples = batches[key]
+        for sample in list_samples:
+            shuffled_train_list.append(sample)
+
+    shuffle_data = []
+    for i in shuffled_train_list:
+        shuffle_data.append(train[i])
+    return shuffle_data
+
+
+ITERATION = 20
 print("iteration: " + str(ITERATION))
 for ITER in range(ITERATION):
-  # Perform training
+  # Perform training # sorting based on the length of training data
   train.sort(key=lambda t: len(t[0]), reverse=True)
   dev.sort(key=lambda t: len(t[0]), reverse=True)
   train_order = create_batches(train, BATCH_SIZE) 
   dev_order = create_batches(dev, BATCH_SIZE)
+  train = shuffle_data(train, BATCH_SIZE)
   #random.shuffle(train)
   train_words, train_loss = 0, 0.0
   start = time.time()

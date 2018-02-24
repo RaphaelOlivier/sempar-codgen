@@ -31,26 +31,25 @@ def read_dataset(source_file, target_file):
 # read training data
 # -------------------------
 use_django = False
-use_hs = True
+
 if use_django:
-    train_source_file = "django_dataset/query_train_.txt"
-    train_target_file = "django_dataset/tree_train_.txt"
-
-    #train_source_file = "django_dataset/query_dev_.txt"
-    #train_target_file = "django_dataset/tree_dev_.txt"
-    dev_source_file = "django_dataset/query_dev_.txt"
-    dev_target_file = "django_dataset/tree_dev_.txt"
-    test_source_file = "django_dataset/query_test_.txt"
-    test_target_file = "django_dataset/tree_test_.txt"
-
-if use_hs:
-    train_source_file = "hs_dataset/query_hs_train_.txt"
-    train_target_file = "hs_dataset/tree_hs_train_.txt"
-
-    dev_source_file = "hs_dataset/query_hs_dev_.txt"
-    dev_target_file = "hs_dataset/tree_hs_dev_.txt"
-    test_source_file = "hs_dataset/query_hs_test_.txt"
-    test_target_file = "hs_dataset/tree_hs_test_.txt"
+    modulo = 1000
+    print("Using Django dataset...")
+    train_source_file = "django_dataset/django.train.desc"
+    train_target_file = "django_dataset/django.train.code"
+    dev_source_file = "django_dataset/django.dev.desc"
+    dev_target_file = "django_dataset/django.dev.code"
+    test_source_file = "django_dataset/django.test.desc"
+    test_target_file = "django_dataset/django.test.code"
+else:
+    modulo = 100
+    print("Using HS dataset...")
+    train_source_file = "hs_dataset/hs.train.desc"
+    train_target_file = "hs_dataset/hs.train.code"
+    dev_source_file = "hs_dataset/hs.dev.desc"
+    dev_target_file = "hs_dataset/hs.dev.code"
+    test_source_file = "hs_dataset/hs.test.desc"
+    test_target_file = "hs_dataset/hs.test.code"
 
 read_dataset(train_source_file, train_target_file)
 train = list(read_dataset(train_source_file, train_target_file))
@@ -71,14 +70,49 @@ print("Target vocabulary size: {}".format(num_of_words_target))
 
 dev = list(read_dataset(dev_source_file, dev_target_file))
 test = list(read_dataset(test_source_file, test_target_file))
-# start Dynet and define trainer
 
+def get_max_sent_size(train):
+    max_size = 0
+    for each_instance in train:
+        sent_length = len(each_instance[1])
+        if(sent_length > max_size):
+            max_size = sent_length
+        #print(str(each_instance[1]) + " " + str(sent_length) + " " + str(max_size))
+    return max_size
+
+def get_avg_sent_size(train):
+    total = 0.0
+    for each_instance in train:
+        sent_length = len(each_instance[1])
+        total += sent_length
+        #print(str(each_instance[1]) + " " + str(sent_length) + " " + str(max_size))
+    avg = total/len(train)
+    return avg
+
+MAX_SENT_SIZE = get_max_sent_size(train)
+AVG_SENT_SIZE = get_avg_sent_size(train)
+
+print("train max length: " + str(MAX_SENT_SIZE))
+print("train avg length: " + str(AVG_SENT_SIZE))
+
+MAX_SENT_SIZE_DEV = get_max_sent_size(dev)
+AVG_SENT_SIZE = get_avg_sent_size(dev)
+print("dev max length: " + str(MAX_SENT_SIZE_DEV))
+print("dev avg length: " + str(AVG_SENT_SIZE))
+
+MAX_SENT_SIZE_TEST = get_max_sent_size(test)
+AVG_SENT_SIZE = get_avg_sent_size(test)
+print("test max length: " + str(MAX_SENT_SIZE_TEST))
+print("test avg length: " + str(AVG_SENT_SIZE))
+
+
+# start Dynet and define trainer
 model = dy.ParameterCollection()
 trainer = dy.AdamTrainer(model)
 
 NUM_LAYERS = 1
-EMBED_SIZE = 64
-HIDDEN_SIZE = 256
+EMBED_SIZE = 128
+HIDDEN_SIZE = 128
 BATCH_SIZE = 16
 
 # Lookup parameters for word embeddings -  creates a embedding matrix
@@ -91,8 +125,6 @@ TARGET_LSTM_BUILDER = dy.VanillaLSTMBuilder(NUM_LAYERS, EMBED_SIZE, HIDDEN_SIZE,
 
 W_softmax = model.add_parameters((num_of_words_target, HIDDEN_SIZE))
 bias_softmax = model.add_parameters((num_of_words_target))
-
-MAX_SENT_SIZE = 50
 
 # Creates batches where all source sentences are the same length 
 def create_batches(sorted_dataset, max_batch_size):
@@ -167,8 +199,9 @@ def generate(sent):
     src_output = init_state_src.add_inputs([LOOKUP_SOURCE[x] for x in src])[-1].output()
 
     #generate until a eos tag or max is reached
-    current_state = TARGET_LSTM_BUILDER.initial_state().set_s([src_output, dy.tanh(src_output)])
+    #current_state = TARGET_LSTM_BUILDER.initial_state().set_s([src_output, dy.tanh(src_output)])
 
+    current_state = TARGET_LSTM_BUILDER.initial_state().set_s([src_output, src_output])
     prev_word = sos_target
     trg_sent = []
     W_sm = dy.parameter(W_softmax)
@@ -212,9 +245,10 @@ def shuffle_data(train, max_batch_size):
         shuffle_data.append(train[i])
     return shuffle_data
 
-
 ITERATION = 20
 print("iteration: " + str(ITERATION))
+lowest_dev_loss = float("inf")
+decreasing_counter = 0
 for ITER in range(ITERATION):
   # Perform training # sorting based on the length of training data
   train.sort(key=lambda t: len(t[0]), reverse=True)
@@ -224,6 +258,7 @@ for ITER in range(ITERATION):
 
   #print (len(train))
   shuffled_train = shuffle_data(train, BATCH_SIZE)
+  #print (len(train))
   #random.shuffle(train)
 
   train_words, train_loss = 0, 0.0
@@ -234,8 +269,9 @@ for ITER in range(ITERATION):
     train_words += len(sent)
     my_loss.backward()
     trainer.update()
-    if (sent_id+1) % 100 == 0:
+    if (sent_id+1) % modulo == 0:
       print("--finished %r sentences" % (sent_id+1))
+      print("iter %r: train loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
   print("iter %r: train loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
 
   # Evaluate on dev set
@@ -246,7 +282,21 @@ for ITER in range(ITERATION):
     dev_loss += my_loss.value()
     dev_words += len(sent)
     trainer.update()
-  print("iter %r: dev loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, dev_loss/dev_words, math.exp(dev_loss/dev_words), time.time()-start))
+  dev_loss_per_word = dev_loss/dev_words
+  print("iter %r: dev loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, dev_loss_per_word, math.exp(dev_loss/dev_words), time.time()-start))
+  if lowest_dev_loss > dev_loss_per_word:
+    lowest_dev_loss = dev_loss_per_word
+  else:
+    decreasing_counter += 1
+
+  if decreasing_counter == 2:
+    print("old learning rate: " + str(trainer.learning_rate))
+    trainer.learning_rate = trainer.learning_rate/2.0
+    print("new learning rate: " + str(trainer.learning_rate))
+    decreasing_counter = 0
+
+
+
 #generate parse tree
 writer = open("output_tree.txt", 'w')
 sentences = []

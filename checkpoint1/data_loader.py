@@ -68,27 +68,3 @@ print("Target vocabulary size: {}".format(num_of_words_target))
 
 dev = list(read_dataset(dev_source_file, dev_target_file))
 test = list(read_dataset(test_source_file, test_target_file))
-
-
-
-'''
-train = list(read_dataset(train_source_file, train_target_file))
-unk_source = w2i_source["<unk>"]
-eos_source = w2i_source['</s>']
-w2i_source = defaultdict(lambda: unk_source, w2i_source)
-unk_target = w2i_target["<unk>"]
-eos_target = w2i_target['</s>']
-sos_target = w2i_target['<s>']
-w2i_target = defaultdict(lambda: unk_target, w2i_target)
-i2w_target = {v: k for k, v in w2i_target.items()}
-
-num_of_words_source = len(w2i_source)
-print("Source vocabulary size: {}".format(num_of_words_source))
-num_of_words_target = len(w2i_target)
-print("Target vocabulary size: {}".format(num_of_words_target))
-
-dev = list(read_dataset(dev_source_file, dev_target_file))
-test = list(read_dataset(test_source_file, test_target_file))
-
-# start Dynet and define trainer
-'''

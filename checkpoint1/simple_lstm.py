@@ -31,26 +31,24 @@ def read_dataset(source_file, target_file):
 # read training data
 # -------------------------
 use_django = False
-use_hs = True
+use_django = False
+
 if use_django:
-    train_source_file = "django_dataset/query_train_.txt"
-    train_target_file = "django_dataset/tree_train_.txt"
-
-    #train_source_file = "django_dataset/query_dev_.txt"
-    #train_target_file = "django_dataset/tree_dev_.txt"
-    dev_source_file = "django_dataset/query_dev_.txt"
-    dev_target_file = "django_dataset/tree_dev_.txt"
-    test_source_file = "django_dataset/query_test_.txt"
-    test_target_file = "django_dataset/tree_test_.txt"
-
-if use_hs:
-    train_source_file = "hs_dataset/query_hs_train_.txt"
-    train_target_file = "hs_dataset/tree_hs_train_.txt"
-
-    dev_source_file = "hs_dataset/query_hs_dev_.txt"
-    dev_target_file = "hs_dataset/tree_hs_dev_.txt"
-    test_source_file = "hs_dataset/query_hs_test_.txt"
-    test_target_file = "hs_dataset/tree_hs_test_.txt"
+    print("Using Django dataset...")
+    train_source_file = "django_dataset/django.train.desc"
+    train_target_file = "django_dataset/django.train.code"
+    dev_source_file = "django_dataset/django.dev.desc"
+    dev_target_file = "django_dataset/django.dev.code"
+    test_source_file = "django_dataset/django.test.desc"
+    test_target_file = "django_dataset/django.test.code"
+else:
+    print("Using HS dataset...")
+    train_source_file = "hs_dataset/hs.train.desc"
+    train_target_file = "hs_dataset/hs.train.code"
+    dev_source_file = "hs_dataset/hs.dev.desc"
+    dev_target_file = "hs_dataset/hs.dev.code"
+    test_source_file = "hs_dataset/hs.test.desc"
+    test_target_file = "hs_dataset/hs.test.code"
 
 read_dataset(train_source_file, train_target_file)
 train = list(read_dataset(train_source_file, train_target_file))
@@ -71,8 +69,43 @@ print("Target vocabulary size: {}".format(num_of_words_target))
 
 dev = list(read_dataset(dev_source_file, dev_target_file))
 test = list(read_dataset(test_source_file, test_target_file))
-# start Dynet and define trainer
 
+def get_max_sent_size(train):
+    max_size = 0
+    for each_instance in train:
+        sent_length = len(each_instance[1])
+        if(sent_length > max_size):
+            max_size = sent_length
+        #print(str(each_instance[1]) + " " + str(sent_length) + " " + str(max_size))
+    return max_size
+
+def get_avg_sent_size(train):
+    total = 0.0
+    for each_instance in train:
+        sent_length = len(each_instance[1])
+        total += sent_length
+        #print(str(each_instance[1]) + " " + str(sent_length) + " " + str(max_size))
+    avg = total/len(train)
+    return avg
+
+MAX_SENT_SIZE = get_max_sent_size(train)
+AVG_SENT_SIZE = get_avg_sent_size(train)
+
+print("train max length: " + str(MAX_SENT_SIZE))
+print("train avg length: " + str(AVG_SENT_SIZE))
+
+MAX_SENT_SIZE_DEV = get_max_sent_size(dev)
+AVG_SENT_SIZE = get_avg_sent_size(dev)
+print("dev max length: " + str(MAX_SENT_SIZE_DEV))
+print("dev avg length: " + str(AVG_SENT_SIZE))
+
+MAX_SENT_SIZE_TEST = get_max_sent_size(test)
+AVG_SENT_SIZE = get_avg_sent_size(test)
+print("test max length: " + str(MAX_SENT_SIZE_TEST))
+print("test avg length: " + str(AVG_SENT_SIZE))
+
+
+# start Dynet and define trainer
 model = dy.ParameterCollection()
 trainer = dy.AdamTrainer(model)
 
@@ -222,8 +255,9 @@ for ITER in range(ITERATION):
   #train_order = create_batches(train, BATCH_SIZE) 
   #dev_order = create_batches(dev, BATCH_SIZE)
 
-  #print (len(train))
+  print (len(train))
   shuffled_train = shuffle_data(train, BATCH_SIZE)
+  print (len(train))
   #random.shuffle(train)
 
   train_words, train_loss = 0, 0.0

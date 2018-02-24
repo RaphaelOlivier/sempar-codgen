@@ -145,6 +145,7 @@ def calc_loss(sent):
         all_losses.append(dy.pickneglogsoftmax(s, next_word))
 
         prev_word = next_word
+
     return dy.esum(all_losses)
 
 def generate(sent):
@@ -192,23 +193,15 @@ def shuffle_data(train, max_batch_size):
     source = [x[0] for x in train]
     src_lengths = [len(x) for x in source]
     batches = {}
-    prev = src_lengths[0]
-    prev_start = 0
-    batch_size = 1
-    for i in range(1, len(src_lengths)):
-        if src_lengths[i] != prev or batch_size == max_batch_size:
-            batch =  [x for x in range(prev_start, prev_start+batch_size)]
-            batches[prev] = batch # creates a batch when a different length sentence is obtained
-            prev = src_lengths[i]
-            prev_start = i
-            batch_size = 1
-        else:
-            batch_size += 1
+    for i, length in enumerate(src_lengths):
+        if length not in batches:
+            batches[length] = []
+        batches[length].append(i)
     for batch in batches:
         random.shuffle(batches[batch])
     keys = list(batches.keys())
     random.shuffle(keys)
-    shuffled_train_list = [] # indexes of the samples
+    shuffled_train_list = [] # indexes of the 
     for key in keys:
         list_samples = batches[key]
         for sample in list_samples:
@@ -226,13 +219,16 @@ for ITER in range(ITERATION):
   # Perform training # sorting based on the length of training data
   train.sort(key=lambda t: len(t[0]), reverse=True)
   dev.sort(key=lambda t: len(t[0]), reverse=True)
-  train_order = create_batches(train, BATCH_SIZE) 
-  dev_order = create_batches(dev, BATCH_SIZE)
-  train = shuffle_data(train, BATCH_SIZE)
+  #train_order = create_batches(train, BATCH_SIZE) 
+  #dev_order = create_batches(dev, BATCH_SIZE)
+
+  #print (len(train))
+  shuffled_train = shuffle_data(train, BATCH_SIZE)
   #random.shuffle(train)
+
   train_words, train_loss = 0, 0.0
   start = time.time()
-  for sent_id, sent in enumerate(train):
+  for sent_id, sent in enumerate(shuffled_train):
     my_loss = calc_loss(sent)
     train_loss += my_loss.value()
     train_words += len(sent)
@@ -251,7 +247,6 @@ for ITER in range(ITERATION):
     dev_words += len(sent)
     trainer.update()
   print("iter %r: dev loss/word=%.4f, ppl=%.4f, time=%.2fs" % (ITER, dev_loss/dev_words, math.exp(dev_loss/dev_words), time.time()-start))
-
 #generate parse tree
 writer = open("output_tree.txt", 'w')
 sentences = []
@@ -259,5 +254,5 @@ for sent_id, sent in enumerate(test):
     translated_sent = generate(sent[0])
     sentences.append(translated_sent)
 for sent in sentences:
-    writer.write(sent+"\n")
+    writer.write(str(sent)+"\n")
 writer.close()

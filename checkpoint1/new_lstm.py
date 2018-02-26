@@ -190,7 +190,7 @@ def generate(sent):
         trg_sent.append(i2w_trg[next_word])
     return trg_sent
 
-ITERATION = 5
+ITERATION = 10
 
 #1028 or 512
 log_writer = open(str(ITERATION)+"_iter_django.log", 'w')
@@ -204,8 +204,8 @@ for ITER in range(ITERATION):
   train_words, train_loss = 0, 0.0
   start = time.time()
   for sent_id, sent in enumerate(train):
-    if sent_id == 1:
-        break
+    #if sent_id == 1:
+    #    break
     my_loss = calc_loss(sent)
     train_loss += my_loss.value()
     train_words += len(sent)

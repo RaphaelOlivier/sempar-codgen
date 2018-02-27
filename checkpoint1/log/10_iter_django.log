@@ -1,0 +1,99 @@
+--finished 1000 sentences
+iter 0: train loss/word=5.5085, ppl=246.7719, time=27.83s
+--finished 2000 sentences
+iter 0: train loss/word=5.0294, ppl=152.8481, time=55.02s
+--finished 3000 sentences
+iter 0: train loss/word=4.7702, ppl=117.9449, time=81.64s
+--finished 4000 sentences
+iter 0: train loss/word=4.5755, ppl=97.0793, time=109.24s
+--finished 5000 sentences
+iter 0: train loss/word=4.4140, ppl=82.6000, time=136.48s
+--finished 6000 sentences
+iter 0: train loss/word=4.2615, ppl=70.9158, time=162.69s
+--finished 7000 sentences
+iter 0: train loss/word=4.1620, ppl=64.2025, time=190.00s
+--finished 8000 sentences
+iter 0: train loss/word=4.0559, ppl=57.7363, time=223.54s
+--finished 9000 sentences
+iter 0: train loss/word=3.9763, ppl=53.3195, time=257.19s
+--finished 10000 sentences
+iter 0: train loss/word=3.9037, ppl=49.5866, time=284.08s
+--finished 11000 sentences
+iter 0: train loss/word=3.8511, ppl=47.0437, time=314.58s
+--finished 12000 sentences
+iter 0: train loss/word=3.7935, ppl=44.4098, time=342.04s
+--finished 13000 sentences
+iter 0: train loss/word=3.7370, ppl=41.9714, time=370.26s
+--finished 14000 sentences
+iter 0: train loss/word=3.6828, ppl=39.7582, time=398.05s
+--finished 15000 sentences
+iter 0: train loss/word=3.6435, ppl=38.2249, time=425.67s
+--finished 16000 sentences
+iter 0: train loss/word=3.5982, ppl=36.5307, time=452.62s
+iter 0: train loss/word=3.5982, ppl=36.5307, time=452.62s
+--finished 1000 sentences
+iter 1: train loss/word=2.6932, ppl=14.7786, time=27.69s
+--finished 2000 sentences
+iter 1: train loss/word=2.6963, ppl=14.8242, time=55.36s
+--finished 3000 sentences
+iter 1: train loss/word=2.7152, ppl=15.1078, time=82.96s
+--finished 4000 sentences
+iter 1: train loss/word=2.6873, ppl=14.6913, time=109.95s
+--finished 5000 sentences
+iter 1: train loss/word=2.6795, ppl=14.5777, time=136.42s
+--finished 6000 sentences
+iter 1: train loss/word=2.6784, ppl=14.5617, time=162.59s
+--finished 7000 sentences
+iter 1: train loss/word=2.6668, ppl=14.3935, time=188.40s
+--finished 8000 sentences
+iter 1: train loss/word=2.6532, ppl=14.1996, time=216.76s
+--finished 9000 sentences
+iter 1: train loss/word=2.6809, ppl=14.5987, time=244.27s
+--finished 10000 sentences
+iter 1: train loss/word=2.6835, ppl=14.6364, time=271.21s
+--finished 11000 sentences
+iter 1: train loss/word=2.6839, ppl=14.6414, time=297.87s
+--finished 12000 sentences
+iter 1: train loss/word=2.6770, ppl=14.5407, time=323.60s
+--finished 13000 sentences
+iter 1: train loss/word=2.6667, ppl=14.3927, time=350.01s
+--finished 14000 sentences
+iter 1: train loss/word=2.6523, ppl=14.1865, time=376.24s
+--finished 15000 sentences
+iter 1: train loss/word=2.6504, ppl=14.1601, time=403.92s
+--finished 16000 sentences
+iter 1: train loss/word=2.6545, ppl=14.2178, time=430.36s
+iter 1: train loss/word=2.6545, ppl=14.2178, time=430.36s
+--finished 1000 sentences
+iter 2: train loss/word=2.2102, ppl=9.1173, time=26.80s
+--finished 2000 sentences
+iter 2: train loss/word=2.3497, ppl=10.4825, time=54.51s
+--finished 3000 sentences
+iter 2: train loss/word=2.3169, ppl=10.1443, time=82.54s
+--finished 4000 sentences
+iter 2: train loss/word=2.3323, ppl=10.3013, time=109.05s
+--finished 5000 sentences
+iter 2: train loss/word=2.3063, ppl=10.0368, time=135.20s
+--finished 6000 sentences
+iter 2: train loss/word=2.2986, ppl=9.9607, time=161.29s
+--finished 7000 sentences
+iter 2: train loss/word=2.2861, ppl=9.8365, time=191.26s
+--finished 8000 sentences
+iter 2: train loss/word=2.2748, ppl=9.7258, time=217.83s
+--finished 9000 sentences
+iter 2: train loss/word=2.2729, ppl=9.7074, time=245.32s
+--finished 10000 sentences
+iter 2: train loss/word=2.2750, ppl=9.7277, time=272.59s
+--finished 11000 sentences
+iter 2: train loss/word=2.2802, ppl=9.7786, time=298.94s
+--finished 12000 sentences
+iter 2: train loss/word=2.2799, ppl=9.7757, time=325.20s
+--finished 13000 sentences
+iter 2: train loss/word=2.2857, ppl=9.8326, time=351.66s
+--finished 14000 sentences
+iter 2: train loss/word=2.2861, ppl=9.8370, time=379.81s
+--finished 15000 sentences
+iter 2: train loss/word=2.2852, ppl=9.8280, time=411.61s
+--finished 16000 sentences
+iter 2: train loss/word=2.2877, ppl=9.8525, time=445.99s
+iter 2: train loss/word=2.2877, ppl=9.8525, time=445.99s

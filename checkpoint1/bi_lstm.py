@@ -291,10 +291,13 @@ model.save("model/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
 # generate result
 writer = open("results/test_"+mode+"_"+str(ITERATION)+"_iter.result", 'w')
 sentences = []
+print("Generating result...")
 for sent_id, sent in enumerate(test_data):
     input_sent, output_sent = sent[0], sent[1]
     generated_sent = generate(input_sent, forward_encoder, backward_encoder, decoder)
     sentences.append(generated_sent)
+
+print("Writing result...")
 for sent in sentences:
     writer.write(sent+"\n")
 writer.close()

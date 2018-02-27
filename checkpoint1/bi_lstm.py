@@ -188,7 +188,6 @@ def generate(input_sentence, encoder_f, encoder_b, decoder):
     for i in range(len(input_sentence)*2):
         if eos_counter == 2:
             break
-        # w1dt can be computed and cached once for the entire decoding phase
         w1dt = w1dt or w1 * input_matrix
         vector = dy.concatenate([attend(input_matrix, current_state, w1dt), prev_output_embeddings])
 

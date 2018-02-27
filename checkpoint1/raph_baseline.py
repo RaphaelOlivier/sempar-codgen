@@ -9,8 +9,8 @@ import numpy as np
 import pdb
 import time
 
-mode = 'heartstone'
-# mode='django'
+#mode = 'heartstone'
+mode = 'django'
 train_src_file, train_trg_file, dev_src_file, dev_trg_file, test_src_file, test_trg_file = None, None, None, None, None, None
 
 if(mode == 'heartstone'):
@@ -169,7 +169,7 @@ def decode(dec_lstm, vectors, output):
         out_vector = w * s.output() + b
         probs = dy.softmax(out_vector)
         last_output_embeddings = output_lookup[word]
-        loss.append(-dy.log(dy.pick(probs, word))*dy.pick(probs, word))
+        loss.append(-dy.log(dy.pick(probs, word)))
     loss = dy.esum(loss)
     return loss
 
@@ -203,11 +203,10 @@ def generate(input_sentence, enc_fwd_lstm, enc_bwd_lstm, dec_lstm, renew=True):
         probs = dy.softmax(out_vector).vec_value()
         next_word = probs.index(max(probs))
         last_output_embeddings = output_lookup[next_word]
+        if(next_word == eos_trg):
+            count_EOS += 1
+            continue
         if next_word in i2w_trg.keys():
-            if(i2w_trg[next_word] == eos_trg):
-                count_EOS += 1
-                continue
-
             out += i2w_trg[next_word]+" "
         else:
             return out

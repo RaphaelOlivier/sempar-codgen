@@ -12,8 +12,19 @@ start = time.time()
 from collections import Counter, defaultdict
 import numpy as np
 
-goldenTest = "hs_dataset/hs.test.code"
-predicted = "results/test_heartstone_10_iter.result"
+mode = 'heartstone'
+# mode='django'
+
+goldenTest, predicted = None, None
+
+if mode == 'heartstone':
+    goldenTest = "hs_dataset/hs.test.code"
+    predicted = "results/test_heartstone_10_iter.result"
+
+if mode == 'django':
+    goldenTest = "django_dataset/django.test.code"
+    predicted = "results/test_django_10_iter.result"
+
 
 total = 0
 correct = 0

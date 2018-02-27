@@ -1,10 +1,10 @@
-# test accuarcy
+# test accuracy
 from __future__ import print_function
 import time
 import random
 import math
 import sys
-from argparse import ArgumentParser
+import argparse
 from nltk.translate.bleu_score import sentence_bleu
 
 start = time.time()
@@ -12,19 +12,19 @@ start = time.time()
 from collections import Counter, defaultdict
 import numpy as np
 
-parser = ArgumentParser(description='Accuracy computation')
-parser.add_argument('--data', type=str, default='hs',
-                    help='Dataset to be used')
-parser.add_argument('--iter', type=int, default=20,
-                    help='Training iteration')
-args, _ = parser.parse_known_args()
-
-mode = args.data
-iteration = args.iter
+mode = 'heartstone'
 # mode='django'
 
-goldenTest, predicted = "../data/"+mode+"_dataset/"+mode + \
-    ".test.code", "../results/test_"+mode+"_"+str(iteration)+"_iter.result"
+goldenTest, predicted = None, None
+
+if mode == 'heartstone':
+    goldenTest = "hs_dataset/hs.test.code"
+    predicted = "results/test_hs_50_iter.result"
+
+if mode == 'django':
+    goldenTest = "django_dataset/django.test.code"
+    predicted = "results/test_django_10_iter.result"
+
 
 total = 0
 correct = 0
@@ -44,7 +44,6 @@ with open(goldenTest, "r", encoding='utf-8', errors='ignore') as s_file, open(pr
     for golden_line, predicted_line in zip(s_file, t_file):
         reference = golden_line.split(' ')
         candidate = predicted_line.split(' ')
-        score = score + (sentence_bleu(reference, candidate))  # bleu score
-
-    print("average bleu over all sentences : " + str(score/total))
-    print("cumulative bleu score over all sentences : ", str(score))
+        cum_score = cum_score + (sentence_bleu(reference, candidate))  # cumulative score blue
+    total_score = cum_score*100.0/total
+    print('BLEU score (percent): %.2f' % (total_score))

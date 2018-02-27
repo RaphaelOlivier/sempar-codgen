@@ -1,0 +1,3 @@
+iter 0: train loss/word=34.6094, ppl=1073158569821969.3750, time=0.07s
+iter 1: train loss/word=30.2371, ppl=13545245718174.5156, time=0.08s
+iter 2: train loss/word=65.8339, ppl=39022604773334641840526196736.0000, time=0.07s

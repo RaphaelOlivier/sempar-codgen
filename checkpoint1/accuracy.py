@@ -19,7 +19,7 @@ goldenTest, predicted = None, None
 
 if mode == 'heartstone':
     goldenTest = "hs_dataset/hs.test.code"
-    predicted = "results/test_heartstone_10_iter.result"
+    predicted = "results/test_hs_50_iter.result"
 
 if mode == 'django':
     goldenTest = "django_dataset/django.test.code"

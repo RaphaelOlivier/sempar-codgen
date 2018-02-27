@@ -90,7 +90,7 @@ trainer = dy.AdamTrainer(model)
 
 num_layer = 1
 embedding_size = 128
-hidden_size = 128
+hidden_size = 64
 att_size = 32
 
 #  -------- create word embedding matrix  --------
@@ -98,7 +98,7 @@ source_lookup = model.add_lookup_parameters((source_vocab, embedding_size))
 
 # -------- attention parameters --------
 attention_source = model.add_parameters((att_size, hidden_size * 2))
-attention_target = model.add_parameters((att_size, hidden_size * 2))
+attention_target = model.add_parameters((att_size, num_layer*hidden_size * 2))
 attention_parameter = model.add_parameters((1, att_size))
 
 target_lookup = model.add_lookup_parameters((target_vocab, embedding_size))
@@ -233,10 +233,26 @@ def get_loss(input_sentence, output_sentence, encoder_f, encoder_b, decoder):
     return decode(decoder, encoded, output_sentence)
 
 
+def set_dropout():
+    p = 0.
+    forward_encoder.set_dropout(p)
+    backward_encoder.set_dropout(p)
+    decoder.set_dropout(p)
+
+
+def disable_dropout():
+    forward_encoder.disable_dropout()
+    backward_encoder.disable_dropout()
+    decoder.disable_dropout()
+
+
 def train(train_data, encoder_f, encoder_b, decoder, log_writer):
     random.shuffle(train_data)
     train_words, train_loss = 0, 0.0
     start = time.time()
+
+    set_dropout()
+
     for sent_id, sent in enumerate(train_data):
         input_sent, output_sent = sent[0], sent[1]
         loss = get_loss(input_sent, output_sent, encoder_f, encoder_b, decoder)
@@ -259,6 +275,8 @@ def train(train_data, encoder_f, encoder_b, decoder, log_writer):
                      (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
 
     # Evaluate on development set
+    disable_dropout
+
     dev_words, dev_loss = 0, 0.0
     start = time.time()
     for sent_id, sent in enumerate(dev_data):
@@ -280,7 +298,7 @@ log_writer = open("../log/"+str(ITERATION)+"_iter_"+mode+".log", 'w')
 
 print("iteration: " + str(ITERATION))
 lowest_dev_loss = float("inf")
-decreasing_counter = 0
+successive_decreasing_counter = 0
 lowest_dev_perplexity = float("inf")
 for ITER in range(ITERATION):
     # Perform training
@@ -293,13 +311,14 @@ for ITER in range(ITERATION):
         print("----------------------------------")
     if lowest_dev_loss > dev_loss_per_word:
         lowest_dev_loss = dev_loss_per_word
+        successive_decreasing_counter = 0
     else:
         print("old learning rate: " + str(trainer.learning_rate))
-        trainer.learning_rate = trainer.learning_rate/2.0
+        trainer.learning_rate = trainer.learning_rate/5.0
         print("new learning rate: " + str(trainer.learning_rate))
-        decreasing_counter += 1
+        successive_decreasing_counter += 1
 
-    if decreasing_counter == 5:
+    if successive_decreasing_counter == 2:
         print("Early stopping...")
         break
 

@@ -6,14 +6,14 @@ characters = list("abcdefghijklmnopqrstuvwxyz ")
 characters.append(EOS)
 
 int2char = list(characters)
-char2int = {c:i for i,c in enumerate(characters)}
+char2int = {c: i for i, c in enumerate(characters)}
 
 VOCAB_SIZE = len(characters)
 
-LSTM_NUM_OF_LAYERS = 2 #1
-EMBEDDINGS_SIZE = 32 #128
-STATE_SIZE = 32 #128
-ATTENTION_SIZE = 32 #enough
+LSTM_NUM_OF_LAYERS = 2  # 1
+EMBEDDINGS_SIZE = 32  # 128
+STATE_SIZE = 32  # 128
+ATTENTION_SIZE = 32  # enough
 
 model = dy.Model()
 
@@ -23,19 +23,19 @@ enc_bwd_lstm = dy.LSTMBuilder(LSTM_NUM_OF_LAYERS, EMBEDDINGS_SIZE, STATE_SIZE, m
 dec_lstm = dy.LSTMBuilder(LSTM_NUM_OF_LAYERS, STATE_SIZE*2+EMBEDDINGS_SIZE, STATE_SIZE, model)
 
 input_lookup = model.add_lookup_parameters((VOCAB_SIZE, EMBEDDINGS_SIZE))
-attention_w1 = model.add_parameters( (ATTENTION_SIZE, STATE_SIZE*2))
-attention_w2 = model.add_parameters( (ATTENTION_SIZE, STATE_SIZE*LSTM_NUM_OF_LAYERS*2))
-attention_v = model.add_parameters( (1, ATTENTION_SIZE))
-decoder_w = model.add_parameters( (VOCAB_SIZE, STATE_SIZE))
-decoder_b = model.add_parameters( (VOCAB_SIZE))
+attention_w1 = model.add_parameters((ATTENTION_SIZE, STATE_SIZE*2))
+attention_w2 = model.add_parameters((ATTENTION_SIZE, STATE_SIZE*LSTM_NUM_OF_LAYERS*2))
+attention_v = model.add_parameters((1, ATTENTION_SIZE))
+decoder_w = model.add_parameters((VOCAB_SIZE, STATE_SIZE))
+decoder_b = model.add_parameters((VOCAB_SIZE))
 output_lookup = model.add_lookup_parameters((VOCAB_SIZE, EMBEDDINGS_SIZE))
 
 
 def embed_sentence(sentence):
     sentence = [EOS] + list(sentence) + [EOS]
-    
+
     sentence = [char2int[c] for c in sentence]
-    
+
     global input_lookup
 
     result = [input_lookup[char] for char in sentence]
@@ -44,8 +44,6 @@ def embed_sentence(sentence):
 
 def run_lstm(init_state, input_vecs):
     s = init_state
-    print(input_vecs[0].value())
-    exit(0)
     out_vectors = []
     for vector in input_vecs:
         s = s.add_input(vector)
@@ -111,6 +109,8 @@ def decode(dec_lstm, vectors, output):
 
 
 def generate(in_seq, enc_fwd_lstm, enc_bwd_lstm, dec_lstm):
+    dy.renew_cg()
+
     embedded = embed_sentence(in_seq)
     encoded = encode_sentence(enc_fwd_lstm, enc_bwd_lstm, embedded)
 
@@ -126,7 +126,8 @@ def generate(in_seq, enc_fwd_lstm, enc_bwd_lstm, dec_lstm):
     out = ''
     count_EOS = 0
     for i in range(len(in_seq)*2):
-        if count_EOS == 2: break
+        if count_EOS == 2:
+            break
         # w1dt can be computed and cached once for the entire decoding phase
         w1dt = w1dt or w1 * input_mat
         vector = dy.concatenate([attend(input_mat, s, w1dt), last_output_embeddings])
@@ -161,6 +162,7 @@ def train(model, sentence):
             print(loss_value)
             print(generate(sentence, enc_fwd_lstm, enc_bwd_lstm, dec_lstm))
 
-#do padding
-#do batching shuffle, no need to sort
+
+# do padding
+# do batching shuffle, no need to sort
 train(model, "it is working")

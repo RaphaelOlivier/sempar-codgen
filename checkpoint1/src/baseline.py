@@ -108,7 +108,7 @@ b_softmax = model.add_parameters((target_vocab))
 # LSTM
 forward_encoder = dy.LSTMBuilder(num_layer, embedding_size, hidden_size, model)
 backward_encoder = dy.LSTMBuilder(num_layer, embedding_size, hidden_size, model)
-decoder = dy.LSTMBuilder(num_layer, hidden_size * 2 + embedding_size, hidden_size, model)
+decoder = dy.LSTMBuilder(num_layer, hidden_size * 2 + embedding_size, embedding_size, model)
 
 
 def embed(sentence):

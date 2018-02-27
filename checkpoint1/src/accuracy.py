@@ -44,9 +44,7 @@ with open(goldenTest, "r", encoding='utf-8', errors='ignore') as s_file, open(pr
     for golden_line, predicted_line in zip(s_file, t_file):
         reference = golden_line.split(' ')
         candidate = predicted_line.split(' ')
-        score = score + (sentence_bleu(reference, candidate))  # bleu score per sentence
         cum_score = cum_score + (sentence_bleu(reference, candidate,
                                                weights=(0.25, 0.25, 0.25, 0.25)))  # cumulative score blue
-
-    print("average bleu over all sentences : " + str(score/total))
-    print("cumulative bleu score over all sentences : ", str(cum_score/total))
+    total_score = cum_score*100.0/total
+    print('Cumulative BLEU score over all sentences (percent): %.2f' % (total_score))

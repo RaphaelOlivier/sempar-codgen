@@ -10,3 +10,4 @@ Our baseline was inspired by the paper [Grammar as a Foreign Language](https://a
     * *extract_data.py* : a script used at some point (not for our final experiments) to extract the datasets from their raw forms.
     * *model.py* : specifies a class that implements our sequence-to-sequence with attention model. It was coded in DyNet, with the help of the documentation and the course code examples.
     * *baseline.py* : the script. To run it, run the command `python baseline.py --mode chosen_mode --iter n_iterations [other dynet options]` with `chosen_mode` being `django` or `hs` (Hearthstone). Other implementation parameters are hardcoded in the file and can easily be changed.
+    * *accuracy.py* : a small script to compute accuracy and BLEU score. File paths are harcoded. The script uses nltk as a dependancy.

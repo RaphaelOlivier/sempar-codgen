@@ -215,12 +215,12 @@ def generate(input_sentence, encoder_f, encoder_b, decoder):
         prev_output_embeddings = target_lookup[next_word]
 
         if(next_word == eos_target):
-            return result
+            return result[:-1]
         if next_word in i2w_target.keys():
             result += i2w_target[next_word]+" "
         else:
-            return result
-    return result
+            return result[:-1]
+    return result[:-1]
 
 
 def get_loss(input_sentence, output_sentence, encoder_f, encoder_b, decoder):

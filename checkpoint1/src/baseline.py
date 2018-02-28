@@ -158,12 +158,12 @@ for ITER in range(ITERATION):
         lowest_dev_loss = dev_loss_per_word
         successive_decreasing_counter = 0
     else:
-        print("old learning rate: " + str(trainer.learning_rate))
-        trainer.learning_rate = trainer.learning_rate/5.0
-        print("new learning rate: " + str(trainer.learning_rate))
+        print("old learning rate: " + str(model.get_learning_rate()))
+        model.reduce_learning_rate(5)
+        print("new learning rate: " + str(model.get_learning_rate()))
         successive_decreasing_counter += 1
 
-    if successive_decreasing_counter == 2:
+    if successive_decreasing_counter == 3:
         print("Early stopping...")
         break
 

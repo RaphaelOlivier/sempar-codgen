@@ -188,3 +188,10 @@ class Seq2SeqAttention:
 
     def save(self, path):
         self.model.save(path)
+
+    def get_learning_rate(self):
+        return self.learning_rate
+
+    def reduce_learning_rate(self, factor):
+        self.learning_rate = learning_rate
+        self.trainer.learning_rate = self.trainer.learning_rate/factor

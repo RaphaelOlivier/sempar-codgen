@@ -12,8 +12,8 @@ start = time.time()
 from collections import Counter, defaultdict
 import numpy as np
 
-#mode = 'heartstone'
-mode = 'django'
+mode = 'heartstone'
+#mode = 'django'
 
 goldenTest, predicted = None, None
 

@@ -193,5 +193,5 @@ class Seq2SeqAttention:
         return self.learning_rate
 
     def reduce_learning_rate(self, factor):
-        self.learning_rate = learning_rate
+        self.learning_rate = self.learning_rate/factor
         self.trainer.learning_rate = self.trainer.learning_rate/factor

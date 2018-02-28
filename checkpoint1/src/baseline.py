@@ -151,7 +151,7 @@ for ITER in range(ITERATION):
     if lowest_dev_perplexity > dev_perplexity:
         lowest_dev_perplexity = dev_perplexity
         print("----------------------------------")
-        print("Saving lowest dev perplexity: " + str(lowest_dev_perplexity) + " at iteration: " + str(ITER) + "...")
+        print("Saving lowest dev perplexity: " + str(lowest_dev_perplexity) + " at iteration: " + str(iteration) + "...")
         model.save("../exp/models/"+mode+"_"+str(ITERATION)+"lowest_iter_AdamTrainer.model")
         print("----------------------------------")
     if lowest_dev_loss > dev_loss_per_word:

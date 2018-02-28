@@ -1,0 +1,110 @@
+--finished 100 sentences
+iter 0: train loss/word=4.7336, ppl=113.7022, time=4.16s
+--finished 200 sentences
+iter 0: train loss/word=4.3266, ppl=75.6902, time=8.20s
+--finished 300 sentences
+iter 0: train loss/word=4.1384, ppl=62.7035, time=12.40s
+--finished 400 sentences
+iter 0: train loss/word=3.9354, ppl=51.1828, time=16.75s
+--finished 500 sentences
+iter 0: train loss/word=3.7071, ppl=40.7347, time=20.64s
+iter 0: train loss/word=3.6309, ppl=37.7456, time=22.06s
+--finished 100 sentences
+iter 1: train loss/word=2.2219, ppl=9.2253, time=4.17s
+--finished 200 sentences
+iter 1: train loss/word=2.1110, ppl=8.2565, time=8.33s
+--finished 300 sentences
+iter 1: train loss/word=2.0029, ppl=7.4102, time=12.40s
+--finished 400 sentences
+iter 1: train loss/word=1.9292, ppl=6.8837, time=16.48s
+--finished 500 sentences
+iter 1: train loss/word=1.8843, ppl=6.5817, time=20.87s
+iter 1: train loss/word=1.8621, ppl=6.4371, time=22.16s
+--finished 100 sentences
+iter 2: train loss/word=1.5191, ppl=4.5681, time=4.09s
+--finished 200 sentences
+iter 2: train loss/word=1.4639, ppl=4.3226, time=8.10s
+--finished 300 sentences
+iter 2: train loss/word=1.4414, ppl=4.2267, time=12.15s
+--finished 400 sentences
+iter 2: train loss/word=1.4398, ppl=4.2197, time=16.49s
+--finished 500 sentences
+iter 2: train loss/word=1.4156, ppl=4.1190, time=20.63s
+iter 2: train loss/word=1.4053, ppl=4.0768, time=21.95s
+--finished 100 sentences
+iter 3: train loss/word=1.2077, ppl=3.3457, time=3.92s
+--finished 200 sentences
+iter 3: train loss/word=1.2626, ppl=3.5347, time=8.12s
+--finished 300 sentences
+iter 3: train loss/word=1.2126, ppl=3.3621, time=11.90s
+--finished 400 sentences
+iter 3: train loss/word=1.1956, ppl=3.3055, time=16.09s
+--finished 500 sentences
+iter 3: train loss/word=1.1954, ppl=3.3048, time=20.86s
+iter 3: train loss/word=1.1987, ppl=3.3158, time=22.36s
+--finished 100 sentences
+iter 4: train loss/word=1.0668, ppl=2.9060, time=3.99s
+--finished 200 sentences
+iter 4: train loss/word=1.0772, ppl=2.9364, time=8.27s
+--finished 300 sentences
+iter 4: train loss/word=1.0704, ppl=2.9165, time=16.18s
+--finished 400 sentences
+iter 4: train loss/word=1.0934, ppl=2.9843, time=22.71s
+--finished 500 sentences
+iter 4: train loss/word=1.0772, ppl=2.9365, time=28.05s
+iter 4: train loss/word=1.0722, ppl=2.9219, time=29.65s
+--finished 100 sentences
+iter 5: train loss/word=0.9322, ppl=2.5401, time=4.55s
+--finished 200 sentences
+iter 5: train loss/word=0.9861, ppl=2.6808, time=9.13s
+--finished 300 sentences
+iter 5: train loss/word=0.9801, ppl=2.6648, time=13.32s
+--finished 400 sentences
+iter 5: train loss/word=1.0029, ppl=2.7261, time=17.78s
+--finished 500 sentences
+iter 5: train loss/word=0.9800, ppl=2.6645, time=21.69s
+iter 5: train loss/word=0.9853, ppl=2.6786, time=23.05s
+--finished 100 sentences
+iter 6: train loss/word=0.9019, ppl=2.4642, time=4.12s
+--finished 200 sentences
+iter 6: train loss/word=0.9302, ppl=2.5350, time=8.16s
+--finished 300 sentences
+iter 6: train loss/word=0.9336, ppl=2.5436, time=12.32s
+--finished 400 sentences
+iter 6: train loss/word=0.9314, ppl=2.5380, time=16.60s
+--finished 500 sentences
+iter 6: train loss/word=0.9237, ppl=2.5187, time=20.75s
+iter 6: train loss/word=0.9209, ppl=2.5117, time=22.05s
+--finished 100 sentences
+iter 7: train loss/word=0.8280, ppl=2.2888, time=4.00s
+--finished 200 sentences
+iter 7: train loss/word=0.8599, ppl=2.3628, time=8.11s
+--finished 300 sentences
+iter 7: train loss/word=0.8592, ppl=2.3612, time=12.21s
+--finished 400 sentences
+iter 7: train loss/word=0.8771, ppl=2.4038, time=16.76s
+--finished 500 sentences
+iter 7: train loss/word=0.8633, ppl=2.3709, time=20.83s
+iter 7: train loss/word=0.8665, ppl=2.3786, time=22.35s
+--finished 100 sentences
+iter 8: train loss/word=0.9094, ppl=2.4829, time=4.59s
+--finished 200 sentences
+iter 8: train loss/word=0.8520, ppl=2.3443, time=9.01s
+--finished 300 sentences
+iter 8: train loss/word=0.8585, ppl=2.3597, time=13.55s
+--finished 400 sentences
+iter 8: train loss/word=0.8291, ppl=2.2913, time=17.69s
+--finished 500 sentences
+iter 8: train loss/word=0.8251, ppl=2.2822, time=22.07s
+iter 8: train loss/word=0.8208, ppl=2.2724, time=23.43s
+--finished 100 sentences
+iter 9: train loss/word=0.6909, ppl=1.9955, time=4.03s
+--finished 200 sentences
+iter 9: train loss/word=0.7598, ppl=2.1378, time=8.24s
+--finished 300 sentences
+iter 9: train loss/word=0.7645, ppl=2.1479, time=12.27s
+--finished 400 sentences
+iter 9: train loss/word=0.7760, ppl=2.1727, time=16.43s
+--finished 500 sentences
+iter 9: train loss/word=0.7831, ppl=2.1882, time=20.93s
+iter 9: train loss/word=0.7813, ppl=2.1844, time=22.37s

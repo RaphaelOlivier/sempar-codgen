@@ -1,6 +1,7 @@
 # sempar-codgen
 Semantic Parsing and Code Generation project
-Raphael Olivier, Pravalika Avvaru, Shirley 
+
+Raphael Olivier, Pravalika Avvaru, Shirley Hayati
 
 ## Checkpoint 1
 Our baseline was inspired by the paper [Grammar as a Foreign Language](https://arxiv.org/abs/1412.7449). The files are organised as follow :

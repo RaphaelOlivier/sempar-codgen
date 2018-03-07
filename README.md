@@ -1,7 +1,7 @@
 # sempar-codgen
 Semantic Parsing and Code Generation project
 
-Raphael Olivier, Pravalika Avvaru, Shirley Hayati
+Raphael Olivier, Pravalika Avvaru, Shirley Anugrah Hayati
 
 ##Organisation of the repository
 * **data** : our datasets, Django and Hearthstone. Some files have been extracted with the instructions of their respective repositories, others (those we use here) were directly given by Pengcheng Yin, author of the paper [A Syntactic Neural Model for General-Purpose Code Generation](https://arxiv.org/abs/1704.01696).

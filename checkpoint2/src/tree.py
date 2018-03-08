@@ -3,6 +3,8 @@ class SubTree:
         self.frontier_node_type = frontier_node_type
         self.rule = None
         self.token = None
+        self.token_type = None
+        self.token_index = None
         self.time_step = None
         self.parent = None
         self.children = None
@@ -40,9 +42,11 @@ class SubTree:
         for node in child_nodes:
             self.children = SubTree(parent=self, frontier_node_type=node)
 
-    def set_token(self, token, end=False):
+    def set_token(self, token, tktype, tkindex, end=False):
         # set a token, and child if any
         self.token = token
+        self.token_type = tktype
+        self.token_index = tkindex
         if end:
             self.children = []
         else:
@@ -78,6 +82,7 @@ class Tree:
 
     @static
     def make_from_ast(grammar, astTree):
+
         # TODO
         pass
 
@@ -103,11 +108,12 @@ class BuildingTree(Tree):
         child_nodes = self.grammar.get_children(r)
         self.current_node.set_rule(pred_rule, child_nodes)
 
-    def set_token(self, token):
+    def set_token(self, tktype, tkindex, token):
         # set a token, and its child if it was not an eos token
         assert(self.current_action_type == "gen")
         end = (token=grammar.index("eos"))
         self.current_node.set_token(token, end)
+        self.current_node.set_token(token, tktype, tkindex)
 
 
 class OracleTree(Tree):
@@ -125,4 +131,4 @@ class OracleTree(Tree):
     def get_oracle_token(self):
         # returns the correct token for loss computation in the model
         assert(self.current_action_type == "gen")
-        return self.current_node.token
+        return (self.current_node.token_type, self.current_node.token_index)

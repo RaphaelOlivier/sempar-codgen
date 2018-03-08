@@ -81,7 +81,7 @@ class Tree:
         # TODO
         pass
 
-    def to_ast(self):
+    def to_ast(self, grammar):
         # TODO
         pass
 

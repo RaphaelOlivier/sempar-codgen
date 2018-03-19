@@ -1,7 +1,8 @@
 import ast
 
 class Grammar:
-	def __init___(self):
+	def __init__(self):
+
 		self.ast_grammars = {
 			"FunctionDef":
 			{
@@ -132,7 +133,7 @@ class Grammar:
 					"is_list": True
 				},
 				"orelse":{
-					"type": stmt,
+					"type": ast.stmt,
 					"is_optional": False,
 					"is_list": True
 				}
@@ -803,16 +804,14 @@ class Grammar:
 		}
 
 	def get_children(self, rule_parent):
-		return self.ast_grammar[rule_parent]
+		return self.ast_grammars[rule_parent]
 
-	def code2trees(data):
-		return None
-
-	def action_type(self, node_type_index):
+	def action_type(self, node_type):
 		#return APPLYRULE or GENTOKEN
-		return None
-#	def grammar_from_trees(data):
-#		return None
+		if node_type in self.ast_grammars:
+			return "ApplyRule"
+		else:
+			return "GenToken"
 
 #preprocessing Hearthstone
 def preprocess_hs(raw_code):

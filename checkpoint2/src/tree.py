@@ -183,8 +183,8 @@ class OracleTree(Tree):
     def get_oracle_rule(self):
         # returns the correct rule for loss computation in the model
         assert(self.current_action_type == "apply")
-        return self.current_node.rule
         self.need_to_move=True
+        return self.current_node.rule
 
 
     def get_oracle_token(self):
@@ -197,3 +197,4 @@ class OracleTree(Tree):
         else:
             self.need_to_move=False
             self.current_token_index+=1
+        return tktype,tkindex

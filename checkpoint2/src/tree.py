@@ -134,10 +134,11 @@ class Tree:
         t = Tree(grammar)
         t.current_node = SubTree.from_dict(d)
         t.current_action_type = grammar.action_type(t.current_node.frontier_node_type)
+        return t
 
-    def to_json(self, grammar):
-        # TODO
-        pass
+    def to_dict(self, grammar):
+        d = self.current_node.toDict()
+        return d
 
 
 class BuildingTree(Tree):

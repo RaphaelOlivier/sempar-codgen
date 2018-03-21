@@ -8,13 +8,14 @@ import math
 import sys
 from argparse import ArgumentParser
 from collections import Counter, defaultdict
-import tree 
+import tree as Tree
 
 args = namedtuple('args', [
 	'vocabLengthSource',
 	'vocabLengthTarget',
 	'targetIndexer',
-	'targetDictionnary',
+	'targetRuleDictionnary',
+	'targetGenDictionary',
 	'numLayer',
 	'embeddingApplySize',
 	'embeddingGenSize',
@@ -42,9 +43,10 @@ class ASTNNModule:
 	def __init__(self,args):
 
 		self.targetIndexer = args.targetIndexer
-		self.targetDictionnary = args.targetDictionnary
+		self.targetRuleDictionnary = args.targetRuleDictionnary
+		self.targetGenDictionary = args.targetGenDictionary
 		self.vocabLengthSource = args.vocabLengthSource
-		self.vocabLengthTarget = args.vocabLengthSource
+		self.vocabLengthTarget = args.vocabLengthTarget
 
 		self.unkTarget = self.targetIndexer["<unk>"]
 		self.eosTarget = self.targetIndexer["</s>"]
@@ -65,12 +67,13 @@ class ASTNNModule:
 		# creating source embedding matrix
         self.sourceLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthSource, self.embeddingApplySize))
         # creating target embedding matrix 
-        self.targetLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthTarget, self.embeddingGenSize))
+        #self.targetLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthTarget, self.embeddingGenSize))
         # action embeddging matrix
-        self.actionRuleLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthActionRule, self.embeddingGenSize))
+        self.actionRuleLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthActionRule, self.embeddingApplySize))
         # for node type
         self.nodeTypeLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthNodes, self.embeddingNodeType))
 
+        self.gentokenLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthTarget, self.embeddingGenSize))
         # adding paramteters to the AST Neural Network
 		self.attentionSource = self.model.add_parameters((self.attSize, self.hiddenSize * 2))
         self.attentionTarget = self.model.add_parameters((self.attSize, self.numLayer*self.hiddenSize * 2))
@@ -194,7 +197,10 @@ class ASTNNModule:
 
         return context_vector
 
-    def decoder_to_predict(self, encoded, max_length):
+    def decode_to_loss(self, vectors, output):
+
+    	goldenTree = Tree.OracleTree(output) # check this too
+
 
     	w = dy.parameter(self.w_softmax) # the weight matrix 
     	b = dy.parameter(self.b_softmax)
@@ -210,39 +216,56 @@ class ASTNNModule:
     	# parent_action - 2* 256
     	# context vector - 2*256 
     	# node type - 64  - need to change this 
-    	
-    	decoder_states = []
+
+    	decoder_states = [] # used in LSTM models for parent feed
+    	decoder_action = [] 
 
     	current_state = self.decoder.initial_state().add_input(dy.concatenate \
     		([dy.vecInput(self.hiddenSize*3 + self.embeddingNodeType + self.embeddingApplySize), prev_action_embedding]))
 
+    	decoder_states.append(current_state)
     	resultant_parse_tree = ""
+
+    	decoder_state.append(prev_action_embedding) # storing the hidden states for further prediction
 
     	for i in range(max_length):
     		context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
     		parent_time =  tree.get_parent_time()
     		frontier_node_type_embedding = self.nodeTypeLookup(tree.get_frontier_node_type())
-    		parent_action = self.parent_feed()
-
-
-            parent_action_embedding = decoder_states[parent_time] + \
-                decoder_action[parent_time]
+    		parent_action = self.parent_feed(decoder_states[parent_time], decoder_action[parent_time])
 
             current_state = self.decoder_state(
-                current_state, prev_action_embedding, context_vector, parent_action_embedding, frontier_node_type_embedding)
+                current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
+
+        decoder_states.append(current_state)
+
+        action_type = tree.get_action_type()  # assuming the tree module manages to get the node type
+
+        if action_type == "apply":
+            current_apply_action_embedding = self.get_apply_action_embedding(current_state)  # affine tf
+            golden_next_rule = goldentree.get_oracle_rule()
+            item_loss = dy.pickneglogsoftmax(current_apply_action_embedding, golden_next_rule)
+            prev_action_embedding = self.actionRuleLookup(golden_next_rule)
+            decoder_action.append(prev_action_embedding)
+
+        if action_type == "gen":
+            current_action_embedding = self.get_gen_embedding(current_state)  # affine tf over gen vocab
+            # todo
+            goldentoken = goldenTree.get_oracle_token()
+            item_loss = dy.pickneglogsoftmax(current_apply_action_embedding, goldentoken)
+            prev_action_embedding = self.gentokenLookup(goldentoken)
+            decoder_action.append(prev_action_embedding)
+
+        	if(token == self.eos_target):
+            	return 
 
 
 
 
+    def decoder_to_predict(self, encoded, max_length):
 
 
-
-
-        # soft attention and parent action , note type embedding of current 
-        # frontier type 
-    def decode_to_prediction(self, encoded, max_length):
-
-        # start witht the root node at time to
+    	# start witht the root node at time to
         # it either generate apply rule - chooses a rule  - from closed set
         # it picks terminal - and generates a terminal rule - from open set
         # expand the current node - fronteir noder at step t 
@@ -278,49 +301,61 @@ class ASTNNModule:
         # lots of dropouts 
 
 
+    	tree = Tree.BuildingTree()
 
-        tree = Tree()
+    	w = dy.parameter(self.w_softmax) # the weight matrix 
+    	b = dy.parameter(self.b_softmax)
 
-        output = list(output)
+    	w1 = dy.parameter(self.attentionSource) # the weight matrix for context vector
 
-        encoded_states = dy.concatenate_cols(vectors)
+    	attentional_component = w1 * encoded_states
 
-        prev_action_embedding = self.target_lookup[self.eos_target]
+    	encoded_states = dy.concatenate_cols(encoded) # used for context vecor
 
-        current_state = self.decoder.initial_state().add_input(
-            dy.concatenate([dy.vecInput(self.hidden_size * 2), prev_output_embeddings]))
-        losses = []
-        attentional_component = w1 * encoded_states
-        for next_word in output:
-            context_vector = self.attention(
-                encoded_states, current_state, attentional_component)
+    	prev_action_embedding = self.actionRuleLookup(self.eos_target)
 
-            frontier_node_type_embedding = self.embed_node_type(
-                tree.get_frontier_node_type())
-            parent_time = tree.get_parent_time()
-            parent_action_embedding = decoder_states[parent_time] + \
-                decoder_action[parent_time]
+    	# parent_action - 2* 256
+    	# context vector - 2*256 
+    	# node type - 64  - need to change this 
+
+    	decoder_states = []
+    	decoder_action = []
+
+    	current_state = self.decoder.initial_state().add_input(dy.concatenate \
+    		([dy.vecInput(self.hiddenSize*3 + self.embeddingNodeType + self.embeddingApplySize), prev_action_embedding]))
+
+    	decoder_states.append(current_state)
+    	resultant_parse_tree = ""
+
+    	decoder_state.append(prev_action_embedding) # storing the hidden states for further prediction
+
+    	for i in range(max_length):
+    		context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
+    		parent_time =  tree.get_parent_time()
+    		frontier_node_type_embedding = self.nodeTypeLookup(tree.get_frontier_node_type())
+    		parent_action = self.parent_feed(decoder_states[parent_time], decoder_action[parent_time])
 
             current_state = self.decoder_state(
-                current_state, prev_action_embedding, context_vector, parent_action_embedding, frontier_node_type_embedding)
+                current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
 
-            action_type = self.get_action_type(current_state)  # affine tf
-            if action_type == "apply":
-                action_embedding = get_apply_embedding(current_state)  # affine tf
-                action = to_apply_rule(action_embedding)  # argmax
-            if action_type == "gen":
-                action_embedding = get_gen_embedding(current_state)  # affine tf
+        decoder_states.append(current_state)
 
-            probs = (dy.log_softmax(s)).value()
-            next_word = np.argmax(probs)
-            prev_output_embeddings = self.target_lookup[next_word]
+        action_type = tree.get_action_type()  # assuming the tree module manages to get the node type
 
-            if(next_word == self.eos_target):
-                return result[:-1]
-            if next_word in self.targetDictionnary.keys():
-                result += self.targetDictionnary[next_word]+" "
-            else:
-                result += self.targetDictionnary[unk_target]+" "
-        return result[:-1]
+        if action_type == "apply":
+            current_apply_action_embedding = self.get_apply_action_embedding(current_state)  # affine tf
+            rule_probs = (dy.log_softmax(current_apply_action_embedding)).value()
+            action = to_apply_rule(action_embedding)  # argmax
+            next_rule = tree.pick_and_set_rule(list(rule_probs))
+            prev_action_embedding = self.actionRuleLookup(next_rule)
+            decoder_action.append(prev_action_embedding)
 
+        if action_type == "gen":
+            current_action_embedding = self.get_gen_embedding(current_state)  # affine tf over gen vocab
+            # todo
+            token = tree.set_token(rule_probs)
+            prev_action_embedding = self.gentokenLookup(token)
+            decoder_action.append(prev_action_embedding)
 
+        	if(token == self.eos_target):
+            	return 

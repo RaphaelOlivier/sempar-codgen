@@ -1,5 +1,5 @@
 class SubTree:
-    def __init__(self, node_type, ,label, parent):
+    def __init__(self, node_type,label, parent):
         self.node_type = node_type
         self.label=label
         self.action_type = None
@@ -17,14 +17,15 @@ class SubTree:
         assert(self.is_built())
         if(old_time == None):
             old_time = self.time_step
-        if(self.child_to_explore < len(children))
+        if(self.child_to_explore < len(children)):
             child = self.children[self.child_to_explore]
             self.child_to_explore += 1
             child.time_step = old_time+1
             return child
-        else if self.parent == None:
+        elif self.parent == None:
             return None
-        else return self.parent.next(old_time)
+        else:
+            return self.parent.next(old_time)
 
     @staticmethod
     def root():
@@ -62,30 +63,32 @@ class SubTree:
 
 
     @staticmethod
-    def fromDict(d,parent=None):
+    def from_dict(d,parent=None):
         node_type = d["node_type"]
         label = d["label"]
         st = SubTree(parent=parent, node_type=node_type, label=label)
         action_type = d["action_type"]
-        se.set_action_type(action_type)
+        st.set_action_type(action_type)
         if(action_type=="apply_rule"):
             st.rule = d["rule"]
+
+            children=d["children"]
+            if(children==[]):
+                st.children=[]
+            else:
+                st.children=[]
+                for child_d in children:
+                    st.children.append(SubTree.from_dict(child_d,parent=st))
         else:
             assert(action_type == "gen")
             st.tokens=d["tokens"]
             st.tokens_type=d["tokens_type"]
             st.tokens_index = d["tokens_index"]
 
-        children=d["children"]
-        if(children==[]):
-            st.children==[]
-        else:
-            st.children==[]
-            for child_d in children:
-                st.children.append(fromDict(child_d,parent=st))
+
         return st
 
-    def toDict(self):
+    def to_dict(self):
         d = dict()
         d["node_type"]=self.node_type
         d["label"]=self.label
@@ -93,7 +96,7 @@ class SubTree:
         if(self.action_type=="apply_rule"):
             d["rule"]=self.rule
         else:
-            assert(self.action_type=="gen"):
+            assert(self.action_type=="gen")
             d["tokens_index"]=self.tokens_index
             d["tokens_type"]=self.tokens_type
             d["tokens"]=self.tokens

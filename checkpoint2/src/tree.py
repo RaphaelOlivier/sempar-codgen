@@ -1,11 +1,12 @@
 class SubTree:
-    def __init__(self, frontier_node_type, parent):
-        self.frontier_node_type = frontier_node_type
+    def __init__(self, node_type, ,label, parent):
+        self.node_type = node_type
+        self.label=label
         self.action_type = None
         self.rule = None
-        self.token = None
-        self.token_type = None
-        self.token_index = None
+        self.tokens= None
+        self.tokens_type = None
+        self.tokens_index = None
         self.time_step = None
         self.parent = None
         self.children = None
@@ -28,7 +29,7 @@ class SubTree:
     @static
     def root():
         # create a subtree with only the root node
-        st = SubTree(frontier_node_type=grammar.index("root"), parent=None)
+        st = SubTree(node_type=grammar.index("root"), label=None, parent=None)
         st.time_step = 0
         return st
 
@@ -36,41 +37,44 @@ class SubTree:
         # check that the node has an action
         return self.children != None and (self.rule != None or self.token != None)
 
+    def get_token(i):
+        assert(i<len(self.tokens))
+        return self.tokens[i],self.tokens_type[i],self.token_index[i]
+
     def set_rule(self, rule, child_nodes):
         # set a rule and children
         self.rule = rule
         self.children = []
-        for node in child_nodes:
-            self.children = SubTree(parent=self, frontier_node_type=node)
+        for node_type, label in child_nodes:
+            self.children = SubTree(parent=self, node_type=node_type, label=label)
 
-    def set_token(self, token, tktype=None, tkindex=None, end=False):
-        # set a token, and child if any
-        self.token = token
-        self.token_type = tktype
-        self.token_index = tkindex
-        if end:
-            self.children = []
-        else:
-            self.children = [SubTree(parent=self, frontier_node_type=self.frontier_node_type)]
+    def set_token(self, token, tktype, tkindex):
+        self.tokens.append(token)
+        self.tokens_type.append(tktype)
+        self.tokens_index.append(tkindex)
+
+    def set_action_type(self,action_type):
+        self.action_type=action_type
+        if(self.action_type=="gen"):
+            self.tokens=list()
+            self.tokens_type=list()
+            self.tokens_index=list()
+
 
     @static
     def fromDict(d,parent=None):
         node_type = d["node_type"]
-        st = SubTree(parent=parent, frontier_node_type=node_type)
+        label = d["label"]
+        st = SubTree(parent=parent, node_type=node_type, label=label)
         action_type = d["action_type"]
+        se.set_action_type(action_type)
         if(action_type=="apply_rule"):
             st.rule = d["rule"]
-        elif(action_type=="gen_vocab"):
-            st.action_type="gen"
-            st.token_type="vocab"
-            st.token_index = d["token_index"]
-
         else:
-            assert(action_type=="gen_copy")
-            st.action_type="gen"
-            st.token_type="copy"
-            st.token_index = d["token_index"]
-            st.token=d["token"]
+            assert(action_type == "gen")
+            st.tokens=d["tokens"]
+            st.tokens_type=d["tokens_type"]
+            st.tokens_index = d["tokens_index"]
 
         children=d["children"]
         if(children==[]):
@@ -83,20 +87,16 @@ class SubTree:
 
     def toDict(self):
         d = dict()
-        d["node_type"]=self.frontier_node_type
+        d["node_type"]=self.node_type
+        d["label"]=self.label
+        d["action_type"]=self.action_type
         if(self.action_type=="apply_rule"):
-            d["action_type"]="apply_rule"
             d["rule"]=self.rule
         else:
             assert(self.action_type=="gen"):
-            if(self.token_type=="vocab"):
-                d["action_type"]="gen_vocab"
-                d["token_index"]=self.token_index
-            else:
-                assert(self.token_type=="copy")
-                d["action_type"]="gen_copy"
-                d["token_index"]=self.token_index
-                d["token"]=self.token
+            d["tokens_index"]=self.tokens_index
+            d["tokens_type"]=self.tokens_type
+            d["tokens"]=self.tokens
         d["children"]=[]
         for child in self.children:
             d["children"].append(child.toDict())
@@ -108,15 +108,17 @@ class Tree:
         # abstract class for trees
         self.grammar = grammar
         self.current_node = None
+        self.need_to_move = True
 
     def move(self):
         # shift the node to the next one, and specify the action type associated to its frontier node
-        self.current_node = self.current_node.next()
-        self.current_node.action_type = grammar.action_type(self.current_node.frontier_node_type)
+        if(self.need_to_move):
+            self.current_node = self.current_node.next()
+            self.current_node.set_action_type(grammar.action_type(self.current_node.node_type))
 
     def get_node_type(self):
         # value needed by the model
-        return self.current_node.frontier_node_type
+        return self.current_node.node_type
 
     def get_action_type(self):
         return self.current_node.action_type
@@ -133,7 +135,6 @@ class Tree:
     def make_from_dict(grammar, d):
         t = Tree(grammar)
         t.current_node = SubTree.from_dict(d)
-        t.current_action_type = grammar.action_type(t.current_node.frontier_node_type)
         return t
 
     def to_dict(self, grammar):
@@ -152,18 +153,23 @@ class BuildingTree(Tree):
     def pick_and_set_rule(self, rules_probs):
         # from the rule probabilities, find the best one conditionned to the frontier node type and update the tree
         assert(self.current_node.action_type == "apply")
-        rule_choices = self.grammar.rules_from_frontier_node()
+        rule_choices = self.grammar.rules_from_node()
         selected_probs = rule_probs[rule_choices]
         pred_rule = rule_choices[np.argmax(selected_probs)]
         child_nodes = self.grammar.get_children(r)
         self.current_node.set_rule(pred_rule, child_nodes)
+        self.need_to_move=True
 
-    def set_token(self, tktype, tkindex, token):
+    def set_token(self, token, tktype, tkindex):
         # set a token, and its child if it was not an eos token
         assert(self.current_node.action_type == "gen")
-        end = (tkindex==grammar.index("eos"))
-        self.current_node.set_token(token, end)
         self.current_node.set_token(token, tktype, tkindex)
+        end = (tkindex==grammar.index("eos"))
+        if(end):
+            self.need_to_move = True
+        else:
+            self.need_to_move = False
+
 
 
 class OracleTree(Tree):
@@ -171,14 +177,23 @@ class OracleTree(Tree):
     def __init__(self, grammar, indexedString):
         # create from an ast
         super.__init__(self, grammar)
-        Tree.make_from_indexed_string(grammar, indexedString)
+        Tree.make_from_dict(grammar, indexedString)
+        self.current_token_index=0
 
     def get_oracle_rule(self):
         # returns the correct rule for loss computation in the model
         assert(self.current_action_type == "apply")
         return self.current_node.rule
+        self.need_to_move=True
+
 
     def get_oracle_token(self):
         # returns the correct token for loss computation in the model
-        assert(self.current_action_type == "gen")
-        return (self.current_node.token_type, self.current_node.token_index)
+        assert(self.current_node.action_type == "gen")
+        token,tktype,tkindex = self.current_node.get_token_info(self.current_token_index)
+        if(tkindex==grammar.index("eos")):
+            self.need_to_move=True
+            self.current_token_index=0
+        else:
+            self.need_to_move=False
+            self.current_token_index+=1

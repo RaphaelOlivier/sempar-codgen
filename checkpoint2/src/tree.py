@@ -26,7 +26,7 @@ class SubTree:
             return None
         else return self.parent.next(old_time)
 
-    @static
+    @staticmethod
     def root():
         # create a subtree with only the root node
         st = SubTree(node_type=grammar.index("root"), label=None, parent=None)
@@ -61,7 +61,7 @@ class SubTree:
             self.tokens_index=list()
 
 
-    @static
+    @staticmethod
     def fromDict(d,parent=None):
         node_type = d["node_type"]
         label = d["label"]
@@ -131,7 +131,7 @@ class Tree:
         # to know if decoding is over (current node is None)
         return self.current_node == None
 
-    @static
+    @staticmethod
     def make_from_dict(grammar, d):
         t = Tree(grammar)
         t.current_node = SubTree.from_dict(d)

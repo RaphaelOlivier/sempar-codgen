@@ -111,7 +111,7 @@ class BuildingTree(Tree):
 
 
 class OracleTree(Tree):
-    # Golden rees used in training
+    # Golden tees used in training
     def __init__(self, grammar, astTree):
         # create from an ast
         super.__init__(self, grammar)

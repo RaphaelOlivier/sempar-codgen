@@ -1,6 +1,6 @@
 import dynet as dy
 import numpy as np
-
+from collections import namedtuple
 
 class ASTNet:
     def __init__(self, vocab_length_source, vocab_length_target, targetIndexer, targetDictionnary, num_layer=1, embedding_apply_size=128,
@@ -124,6 +124,43 @@ class ASTNet:
         return loss
 
     def decode_to_prediction(self, encoded, max_length):
+
+        # start witht the root node at time to
+        # it either generate apply rule - chooses a rule  - from closed set
+        # it picks terminal - and generates a terminal rule - from open set
+        # expand the current node - fronteir noder at step t 
+        # given a set of rules (r) - it chooses a rule r from subset that has 
+        # head matching the type nft.
+        # then appends all child nodes specified by selected production
+        # if a variable node is added to derivation - switches to GENTOKEN
+        # is applu rule nodes -  add more children to the derivation
+        # reach a fronteir node that corresponds to a variable type - GEN TOKEN 
+        # used to fill the nodes with values
+        # <'\n'> used to close the terminal node - apply gen token can happen multiple times
+        # terminal nodes can be copied or choosen from the terminal vocab
+        # use bi-directional LSTM - encoder
+        # RNN - decoder 
+        # each action step in the grammar model - grounds to time step in
+        # decoder RNN 
+        # sequence of time steps - unrolling RNN time steps
+        # Vaniall LSTM - decoder
+        # hidden state - st -> vector concatenation -> 
+        # st -> internal hidden state
+        # a function of - previous action, context vectore, input encodings via 
+        # soft attention and parent action , note type embedding of current 
+        # frontier type 
+        # Action embeddingd - Wr and WG
+        # ct - context vectore using for current action prediction
+        # Parent action - also used pt - concat of hidden state of parent action
+        # spt and embedding of parent action 
+        # the probability of applying a rule r is softmax over the formula given
+        # the probability of gen token - marginal probability - 
+        # all embeddings is 128
+        # one of them is 64 -  node one
+        # RNN - 256 states and 50 hidden layers
+        # lots of dropouts 
+
+
 
         tree = Tree()
 

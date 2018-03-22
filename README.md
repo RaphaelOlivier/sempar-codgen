@@ -3,7 +3,7 @@ Semantic Parsing and Code Generation project
 
 Raphael Olivier, Pravalika Avvaru, Shirley Anugrah Hayati
 
-##Organisation of the repository
+### Organisation of the repository
 * **data** : our datasets, Django and Hearthstone. Some files have been extracted with the instructions of their respective repositories, others (those we use here) were directly given by Pengcheng Yin, author of the paper [A Syntactic Neural Model for General-Purpose Code Generation](https://arxiv.org/abs/1704.01696).
 ### Checkpoint 1
 Our baseline was inspired by the paper [Grammar as a Foreign Language](https://arxiv.org/abs/1412.7449). The files are organised as follow :
@@ -13,4 +13,5 @@ Our baseline was inspired by the paper [Grammar as a Foreign Language](https://a
     * *baseline.py* : the script. To run it, run the command `python baseline.py --mode chosen_mode --iter n_iterations [other dynet options]` with `chosen_mode` being `django` or `hs` (Hearthstone). Other implementation parameters are hardcoded in the file and can easily be changed.
     * *accuracy.py* : a small script to compute accuracy and BLEU score. File paths are harcoded. The script uses nltk as a dependancy.
 ### Checkpoint 2
+Our state of art implementation was inspired by the paper [A Syntactic Neural Model for General-Purpose Code Generation](https://arxiv.org/pdf/1704.01696.pdf). The files are organised as follow :
 TODO

@@ -4,13 +4,13 @@ import random
 import math
 import sys
 
-from model import ASTNet
+from ASTNet import ASTNNModule
 
 from argparse import ArgumentParser
 from collections import Counter, defaultdict
 
 
-parser = ArgumentParser(description='Baseline Code Generator')
+parser = ArgumentParser(description='Checkpoint2 Code Generator')
 parser.add_argument('--data', type=str, default='hs',
                     help='Dataset to be used')
 parser.add_argument('--iter', type=int, default=20,
@@ -92,7 +92,7 @@ hidden_size = 64
 att_size = 32
 
 # start Dynet and define trainer
-model = ASTNet(vocab_length_source, vocab_length_target, targetIndexer, targetDictionnary,
+model = ASTNNModule(vocab_length_source, vocab_length_target, targetIndexer, targetDictionnary,
                num_layer, embedding_size, hidden_size, att_size)
 
 

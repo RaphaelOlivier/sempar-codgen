@@ -235,7 +235,7 @@ class ASTNNModule:
 
     	decoder_actions.append(prev_action_embedding) # storing the hidden states for further prediction
 
-    	for i in range(max_length):
+    	while(tree.has_ended()):
 
     		context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 
@@ -274,19 +274,24 @@ class ASTNNModule:
         		if selected_action == 0:
 
             		current_gen_action_embedding = self.get_gen_embedding(current_state, w, b)  # affine tf over gen vocab
-            		goldentoken = goldenTree.get_oracle_token()
-            		item_loss = dy.pickneglogsoftmax(current_gen_action_embedding, goldentoken)
-            		prev_action_embedding = self.gentokenLookup(goldentoken)
-            		decoder_action.append(prev_action_embedding)
 
+            		goldentoken = goldenTree.get_oracle_token()
+
+            		item_loss = dy.pickneglogsoftmax(current_gen_action_embedding, goldentoken)
+
+            		losses.append(item_loss)
+
+            		prev_action_embedding = self.gentokenLookup(goldentoken)
+
+            		decoder_action.append(prev_action_embedding)
 
             	elif selected_action == 1:
 
-            	current_gen_action_embedding = self.get_gen_embedding(current_state, w, b,context_vector,  sel_p)  # affine tf over gen vocab
+            		current_gen_action_embedding = self.get_gen_embedding(current_state, w, b,context_vector,  sel_p)  # affine tf over gen vocab
             	
+            tree.move()
 
-        		if(token == self.eos_target):
-            		return 
+        return losses 
 
     def get_apply_action_embedding(self, current_state):
 
@@ -335,7 +340,7 @@ class ASTNNModule:
 
     	decoder_actions.append(prev_action_embedding) # storing the hidden states for further prediction
 
-    	for i in range(max_length):
+    	while(tree.has_ended()):
 
     		context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 
@@ -381,6 +386,8 @@ class ASTNNModule:
 
             	elif selected_action == 1:
 
+
+
             		# to do
 
             	prev_action_embedding = self.gentokenLookup(token)
@@ -389,5 +396,7 @@ class ASTNNModule:
 
         		if( token == self.eos_target):
             		return 
+
+           	tree.move()
 
             # check if this is the way to return

@@ -287,7 +287,7 @@ class ASTNNModule:
 
             	elif selected_action == 1:
 
-            		current_gen_action_embedding = self.get_gen_embedding(current_state, w, b,context_vector,  sel_p)  # affine tf over gen vocab
+            		# to do
             	
             tree.move()
 
@@ -370,7 +370,7 @@ class ASTNNModule:
 
         	if action_type == "gen":
 
-        		token = ''
+        		pred_token = ''
         		# for generating from the vocabulary
         		selection_prob = (dy.log_softmax(sel_gen * current_state)).value()
 
@@ -382,15 +382,15 @@ class ASTNNModule:
 
             		rule_probs = (dy.log_softmax(current_gen_apply_action_embedding)).value() # check if transpose needed
 
-            		token = tree.set_token(rule_probs)
+            		pred_token = np.argmax(selected_probs)
+
+            		token = tree.set_token(pred_token)
 
             	elif selected_action == 1:
 
-
-
             		# to do
 
-            	prev_action_embedding = self.gentokenLookup(token)
+            	prev_action_embedding = self.gentokenLookup(pred_token)
 
             	decoder_action.append(prev_action_embedding)
 

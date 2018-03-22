@@ -30,7 +30,7 @@ class SubTree:
     @staticmethod
     def root():
         # create a subtree with only the root node
-        st = SubTree(node_type=grammar.index("root"), label=None, parent=None)
+        st = SubTree(node_type=grammar.get_node_index("root"), label=None, parent=None)
         st.time_step = 0
         return st
 
@@ -119,7 +119,7 @@ class Tree:
             self.current_node = self.current_node.next()
             self.current_node.set_action_type(grammar.action_type(self.current_node.node_type))
         return bool(self.current_node)
-        
+
     def get_node_type(self):
         # value needed by the model
         return self.current_node.node_type
@@ -168,7 +168,7 @@ class BuildingTree(Tree):
         # set a token, and its child if it was not an eos token
         assert(self.current_node.action_type == "gen")
         self.current_node.set_token(token, tktype, tkindex)
-        end = (tkindex==grammar.index("eos"))
+        end = (tkindex==grammar.get_vocab_index("<eos>"))
         if(end):
             self.need_to_move = True
         else:
@@ -195,7 +195,7 @@ class OracleTree(Tree):
         # returns the correct token for loss computation in the model
         assert(self.current_node.action_type == "gen")
         token,tktype,tkindex = self.current_node.get_token_info(self.current_token_index)
-        if(tkindex==grammar.index("eos")):
+        if(tkindex==grammar.get_vocab_index("<eos>")):
             self.need_to_move=True
             self.current_token_index=0
         else:

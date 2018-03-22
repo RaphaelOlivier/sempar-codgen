@@ -1,0 +1,222 @@
+'Assert -> (expr{test})'	0
+'Assert -> (expr{test}), (expr{msg})'	1
+'Assign -> (expr*{targets}), (expr{value})'	2
+'Attribute -> (expr{value}), (str{attr})'	3
+'AugAssign -> (expr{target}), (operator{op}), (expr{value})'	4
+'BinOp -> (expr{left}), (operator{op}), (expr{right})'	5
+'BoolOp -> (boolop{op}), (expr*{values})'	6
+'Call -> (expr{func})'	7
+'Call -> (expr{func}), (expr*{args})'	8
+'Call -> (expr{func}), (expr*{args}), (expr{kwargs})'	9
+'Call -> (expr{func}), (expr*{args}), (expr{starargs})'	10
+'Call -> (expr{func}), (expr*{args}), (expr{starargs}), (expr{kwargs})'	11
+'Call -> (expr{func}), (expr*{args}), (keyword*{keywords})'	12
+'Call -> (expr{func}), (expr*{args}), (keyword*{keywords}), (expr{kwargs})'	13
+'Call -> (expr{func}), (expr*{args}), (keyword*{keywords}), (expr{starargs})'	14
+'Call -> (expr{func}), (expr{kwargs})'	15
+'Call -> (expr{func}), (expr{starargs})'	16
+'Call -> (expr{func}), (expr{starargs}), (expr{kwargs})'	17
+'Call -> (expr{func}), (keyword*{keywords})'	18
+'Call -> (expr{func}), (keyword*{keywords}), (expr{kwargs})'	19
+'Call -> (expr{func}), (keyword*{keywords}), (expr{starargs}), (expr{kwargs})'	20
+'ClassDef -> (str{name}), (expr*{bases}), (stmt*{body})'	21
+'ClassDef -> (str{name}), (stmt*{body})'	22
+'Compare -> (expr{left}), (cmpop*{ops}), (expr*{comparators})'	23
+'Delete -> (expr*{targets})'	24
+'Dict -> (epsilon)'	25
+'Dict -> (expr*{keys}), (expr*{values})'	26
+'DictComp -> (expr{key}), (expr{value}), (comprehension*{generators})'	27
+'ExceptHandler -> (expr{type}), (expr{name}), (stmt*{body})'	28
+'ExceptHandler -> (expr{type}), (stmt*{body})'	29
+'ExceptHandler -> (stmt*{body})'	30
+'Exec -> (expr{body})'	31
+'Expr -> (expr{value})'	32
+'For -> (expr{target}), (expr{iter}), (stmt*{body})'	33
+'FunctionDef -> (str{name}), (arguments{args}), (stmt*{body})'	34
+'FunctionDef -> (str{name}), (arguments{args}), (stmt*{body}), (expr*{decorator_list})'	35
+'GeneratorExp -> (expr{elt}), (comprehension*{generators})'	36
+'Global -> (str*{names})'	37
+'If -> (expr{test}), (stmt*{body})'	38
+'If -> (expr{test}), (stmt*{body}), (stmt*{orelse})'	39
+'IfExp -> (expr{test}), (expr{body}), (expr{orelse})'	40
+'Import -> (alias*{names})'	41
+'ImportFrom -> (alias*{names}), (int{level})'	42
+'ImportFrom -> (str{module}), (alias*{names}), (int{level})'	43
+'Index -> (expr{value})'	44
+'Lambda -> (arguments{args}), (expr{body})'	45
+'List -> (epsilon)'	46
+'List -> (expr*{elts})'	47
+'ListComp -> (expr{elt}), (comprehension*{generators})'	48
+'Name -> (str{id})'	49
+'Num -> (float{n})'	50
+'Num -> (int{n})'	51
+'Print -> (expr*{values}), (bool{nl})'	52
+'Raise -> (epsilon)'	53
+'Raise -> (expr{type})'	54
+'Return -> (epsilon)'	55
+'Return -> (expr{value})'	56
+'Set -> (expr*{elts})'	57
+'Slice -> (epsilon)'	58
+'Slice -> (expr{lower})'	59
+'Slice -> (expr{lower}), (expr{step})'	60
+'Slice -> (expr{lower}), (expr{upper})'	61
+'Slice -> (expr{step})'	62
+'Slice -> (expr{upper})'	63
+'Str -> (str{s})'	64
+'Subscript -> (expr{value}), (slice{slice})'	65
+'TryExcept -> (stmt*{body}), (excepthandler*{handlers})'	66
+'TryFinally -> (stmt*{body}), (stmt*{finalbody})'	67
+'Tuple -> (epsilon)'	68
+'Tuple -> (expr*{elts})'	69
+'UnaryOp -> (unaryop{op}), (expr{operand})'	70
+'While -> (expr{test}), (stmt*{body})'	71
+'With -> (expr{context_expr}), (expr{optional_vars}), (stmt*{body})'	72
+'With -> (expr{context_expr}), (stmt*{body})'	73
+'Yield -> (epsilon)'	74
+'Yield -> (expr{value})'	75
+'alias -> (str{name})'	76
+'alias -> (str{name}), (str{asname})'	77
+'alias* -> (alias)'	78
+'alias* -> (alias), (alias)'	79
+'alias* -> (alias), (alias), (alias)'	80
+'alias* -> (alias), (alias), (alias), (alias)'	81
+'alias* -> (alias), (alias), (alias), (alias), (alias)'	82
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias)'	83
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias), (alias)'	84
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias)'	85
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias)'	86
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias)'	87
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias)'	88
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias)'	89
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias)'	90
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias)'	91
+'arguments -> (arguments)'	92
+'arguments -> (epsilon)'	93
+'arguments -> (expr*{args})'	94
+'arguments -> (expr*{args}), (expr*{defaults})'	95
+'arguments -> (expr*{args}), (str{kwarg})'	96
+'arguments -> (expr*{args}), (str{kwarg}), (expr*{defaults})'	97
+'arguments -> (expr*{args}), (str{vararg})'	98
+'arguments -> (expr*{args}), (str{vararg}), (str{kwarg})'	99
+'arguments -> (expr*{args}), (str{vararg}), (str{kwarg}), (expr*{defaults})'	100
+'arguments -> (str{kwarg})'	101
+'arguments -> (str{vararg})'	102
+'arguments -> (str{vararg}), (str{kwarg})'	103
+'boolop -> (And)'	104
+'boolop -> (Or)'	105
+'cmpop -> (Eq)'	106
+'cmpop -> (Gt)'	107
+'cmpop -> (GtE)'	108
+'cmpop -> (In)'	109
+'cmpop -> (Is)'	110
+'cmpop -> (IsNot)'	111
+'cmpop -> (Lt)'	112
+'cmpop -> (LtE)'	113
+'cmpop -> (NotEq)'	114
+'cmpop -> (NotIn)'	115
+'cmpop* -> (cmpop)'	116
+'cmpop* -> (cmpop), (cmpop)'	117
+'cmpop* -> (cmpop), (cmpop), (cmpop)'	118
+'comprehension -> (expr{target}), (expr{iter})'	119
+'comprehension -> (expr{target}), (expr{iter}), (expr*{ifs})'	120
+'comprehension* -> (comprehension)'	121
+'comprehension* -> (comprehension), (comprehension)'	122
+'excepthandler* -> (ExceptHandler)'	123
+'expr -> (Attribute)'	124
+'expr -> (BinOp)'	125
+'expr -> (BoolOp)'	126
+'expr -> (Call)'	127
+'expr -> (Compare)'	128
+'expr -> (Dict)'	129
+'expr -> (DictComp)'	130
+'expr -> (GeneratorExp)'	131
+'expr -> (IfExp)'	132
+'expr -> (Lambda)'	133
+'expr -> (List)'	134
+'expr -> (ListComp)'	135
+'expr -> (Name)'	136
+'expr -> (Num)'	137
+'expr -> (Set)'	138
+'expr -> (Str)'	139
+'expr -> (Subscript)'	140
+'expr -> (Tuple)'	141
+'expr -> (UnaryOp)'	142
+'expr -> (Yield)'	143
+'expr* -> (expr)'	144
+'expr* -> (expr), (expr)'	145
+'expr* -> (expr), (expr), (expr)'	146
+'expr* -> (expr), (expr), (expr), (expr)'	147
+'expr* -> (expr), (expr), (expr), (expr), (expr)'	148
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr)'	149
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	150
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	151
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	152
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	153
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	154
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	155
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	156
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	157
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	158
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	159
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	160
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	161
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	162
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	163
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	164
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	165
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	166
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	167
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	168
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	169
+'keyword -> (str{arg}), (expr{value})'	170
+'keyword* -> (keyword)'	171
+'keyword* -> (keyword), (keyword)'	172
+'keyword* -> (keyword), (keyword), (keyword)'	173
+'keyword* -> (keyword), (keyword), (keyword), (keyword)'	174
+'keyword* -> (keyword), (keyword), (keyword), (keyword), (keyword)'	175
+'keyword* -> (keyword), (keyword), (keyword), (keyword), (keyword), (keyword)'	176
+'keyword* -> (keyword), (keyword), (keyword), (keyword), (keyword), (keyword), (keyword)'	177
+'keyword* -> (keyword), (keyword), (keyword), (keyword), (keyword), (keyword), (keyword), (keyword), (keyword)'	178
+'operator -> (Add)'	179
+'operator -> (BitAnd)'	180
+'operator -> (BitOr)'	181
+'operator -> (BitXor)'	182
+'operator -> (Div)'	183
+'operator -> (FloorDiv)'	184
+'operator -> (LShift)'	185
+'operator -> (Mod)'	186
+'operator -> (Mult)'	187
+'operator -> (Pow)'	188
+'operator -> (Sub)'	189
+'root -> (Assert)'	190
+'root -> (Assign)'	191
+'root -> (AugAssign)'	192
+'root -> (Break)'	193
+'root -> (ClassDef)'	194
+'root -> (Continue)'	195
+'root -> (Delete)'	196
+'root -> (Exec)'	197
+'root -> (Expr)'	198
+'root -> (For)'	199
+'root -> (FunctionDef)'	200
+'root -> (Global)'	201
+'root -> (If)'	202
+'root -> (Import)'	203
+'root -> (ImportFrom)'	204
+'root -> (Pass)'	205
+'root -> (Print)'	206
+'root -> (Raise)'	207
+'root -> (Return)'	208
+'root -> (TryExcept)'	209
+'root -> (TryFinally)'	210
+'root -> (While)'	211
+'root -> (With)'	212
+'slice -> (Index)'	213
+'slice -> (Slice)'	214
+'stmt -> (If)'	215
+'stmt -> (Pass)'	216
+'stmt* -> (stmt)'	217
+'str* -> (str)'	218
+'str* -> (str), (str)'	219
+'unaryop -> (Not)'	220
+'unaryop -> (USub)'	221

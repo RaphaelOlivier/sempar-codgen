@@ -22,63 +22,71 @@ class Node():
 		#print(self.node_type)
 		print(self.node_type + " " + str(self.node_label) + " " + self.node_type_idx + " " + self.parent)
 
-def index_reader(file_name, remove_paranthesis, index_to_val):
-	indexer = {}
-	with open(file_name, 'r') as input_file:
-		for each_line in input_file.readlines():
-			value, index = each_line.rstrip().split("\t")
-			if remove_paranthesis:
-				value = value.replace("(", "").replace(")", "")
-			if index_to_val:
-				indexer[index] = value
-			else:
-				indexer[value] = index
-	return indexer
+class Indexer():
 
-mode = "hs"
-rules = index_reader("../indexer/rules_"+mode+".tsv", True, True)
-node_types = index_reader("../indexer/nodes_"+mode+".tsv", False, False)
-frontier_nodes = index_reader("../indexer/frontier_nodes_"+mode+".tsv", True, False)
-annot_vocab = index_reader("../indexer/annot_vocab_"+mode+".tsv", False, False)
-terminal_vocab = index_reader("../indexer/terminal_vocab_"+mode+".tsv", False, False)
+	def __init__(self,mode):
 
-def get_node_index(token):
-	return node_types[token]
+		self.mode = mode
+		self.rules = Indexer.index_reader("../../data/indexer/rules_"+self.mode+".tsv", True, True)
+		self.node_types = Indexer.index_reader("../../data/indexer/nodes_"+self.mode+".tsv", False, False)
+		self.frontier_nodes = Indexer.index_reader("../../data/indexer/frontier_nodes_"+self.mode+".tsv", True, False)
+		self.annot_vocab = Indexer.index_reader("../../data/indexer/annot_vocab_"+self.mode+".tsv", False, False)
+		self.terminal_vocab = Indexer.index_reader("../../data/indexer/terminal_vocab_"+self.mode+".tsv", False, False)
 
-def get_vocab_index(token):
-	return terminal_vocab[token]
+	@staticmethod
+	def index_reader(file_name, remove_paranthesis, index_to_val):
+		indexer = {}
+		with open(file_name, 'r') as input_file:
+			for each_line in input_file.readlines():
+				# print(each_line)
+				value, index = each_line.rstrip().split("\t")
+				if remove_paranthesis:
+					value = value.replace("(", "").replace(")", "")
+				if index_to_val:
+					indexer[index] = value
+				else:
+					indexer[value] = index
+		return indexer
 
-def action_type(node_type):
-	if node_type in frontier_nodes:
-		return "gen"
-	else:
-		return "apply"
+	def get_node_index(self, token):
+		return self.node_types[token]
 
-def rules_from_node():
-	rule_index_list = rules.values()
-	return np.array(list(rule_index_list))
+	def get_vocab_index(self, token):
+		return self.terminal_vocab[token]
 
-def get_children(rule_index):
-	#print("---- " + rule_index + " ----")
-	parent, raw_children = rules[rule_index].split(" -> ")
-	parent = parent.strip()
-	raw_children = raw_children.strip()
-	children_list = raw_children.split(",")
-	#print(parent)
-	#print(raw_children)
-	#print(children_list)
-	children = []
-	for child in children_list:
-		split_child = child.split("{")
-		node_type = split_child[0].strip()
-		node_label = None
-		if len(split_child) == 2:
-			node_label = split_child[1].replace("}", "").strip()
-		node_idx = get_node_index(node_type)
-		child_node = Node(node_type, node_label, node_idx, parent)
-		children.append(child_node)
-		child_node.print_node()
+	def action_type(self, node_type):
+		if node_type in self.frontier_nodes:
+			return "gen"
+		else:
+			return "apply"
 
-	return children
-get_children("44")
-get_children("1")
+	def rules_from_node(self):
+		rule_index_list = self.rules.values()
+		return np.array(list(rule_index_list))
+
+	def get_children(self, rule_index):
+		#print("---- " + rule_index + " ----")
+		parent, raw_children = self.rules[rule_index].split(" -> ")
+		parent = parent.strip()
+		raw_children = raw_children.strip()
+		children_list = raw_children.split(",")
+		#print(parent)
+		#print(raw_children)
+		#print(children_list)
+		children = []
+		for child in children_list:
+			split_child = child.split("{")
+			node_type = split_child[0].strip()
+			node_label = None
+			if len(split_child) == 2:
+				node_label = split_child[1].replace("}", "").strip()
+			node_idx = self.get_node_index(node_type)
+			child_node = Node(node_type, node_label, node_idx, parent)
+			children.append(child_node)
+			child_node.print_node()
+
+		return children
+if __name__ == "__main__":
+	indexer = Indexer("hs")
+	indexer.get_children("44")
+	indexer.get_children("1")

@@ -1,0 +1,100 @@
+'Assign -> (expr*{targets}), (expr{value})'	0
+'Attribute -> (expr{value}), (str{attr})'	1
+'AugAssign -> (expr{target}), (operator{op}), (expr{value})'	2
+'BinOp -> (expr{left}), (operator{op}), (expr{right})'	3
+'BoolOp -> (boolop{op}), (expr*{values})'	4
+'Call -> (expr{func})'	5
+'Call -> (expr{func}), (expr*{args})'	6
+'Call -> (expr{func}), (expr*{args}), (keyword*{keywords})'	7
+'Call -> (expr{func}), (keyword*{keywords})'	8
+'ClassDef -> (str{name}), (expr*{bases}), (stmt*{body})'	9
+'Compare -> (expr{left}), (cmpop*{ops}), (expr*{comparators})'	10
+'For -> (expr{target}), (expr{iter}), (stmt*{body})'	11
+'FunctionDef -> (str{name}), (arguments{args}), (stmt*{body})'	12
+'If -> (expr{test}), (stmt*{body})'	13
+'If -> (expr{test}), (stmt*{body}), (stmt*{orelse})'	14
+'ImportFrom -> (str{module}), (alias*{names}), (int{level})'	15
+'Index -> (expr{value})'	16
+'Lambda -> (arguments{args}), (expr{body})'	17
+'List -> (epsilon)'	18
+'ListComp -> (expr{elt}), (comprehension*{generators})'	19
+'Return -> (expr{value})'	20
+'Slice -> (epsilon)'	21
+'Subscript -> (expr{value}), (slice{slice})'	22
+'Tuple -> (expr*{elts})'	23
+'UnaryOp -> (unaryop{op}), (expr{operand})'	24
+'alias -> (str{name})'	25
+'alias* -> (alias)'	26
+'alias* -> (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias), (alias)'	27
+'arguments -> (expr*{arguments$->$(arguments)@arguments$->$(expr*{args})})'	28
+'boolop -> (And)'	29
+'boolop -> (Or)'	30
+'cmpop -> (Eq)'	31
+'cmpop -> (Gt)'	32
+'cmpop -> (GtE)'	33
+'cmpop -> (In)'	34
+'cmpop -> (Is)'	35
+'cmpop -> (IsNot)'	36
+'cmpop -> (LtE)'	37
+'cmpop -> (NotEq)'	38
+'cmpop* -> (Lt{cmpop*$->$(cmpop)@cmpop$->$(Lt)})'	39
+'cmpop* -> (cmpop)'	40
+'comprehension -> (expr{target}), (expr{iter}), (expr*{ifs})'	41
+'comprehension* -> (comprehension)'	42
+'expr -> (Attribute)'	43
+'expr -> (Attribute{expr$->$(Call)@Call$->$(expr{func})@expr$->$(Attribute)})'	44
+'expr -> (BinOp)'	45
+'expr -> (BoolOp)'	46
+'expr -> (Call)'	47
+'expr -> (Compare)'	48
+'expr -> (Lambda)'	49
+'expr -> (List)'	50
+'expr -> (ListComp)'	51
+'expr -> (Subscript)'	52
+'expr -> (Tuple)'	53
+'expr -> (UnaryOp)'	54
+'expr -> (expr*{expr$->$(List)@List$->$(expr*{elts})})'	55
+'expr -> (int{expr$->$(Num)@Num$->$(int{n})})'	56
+'expr -> (str{expr$->$(Name)@Name$->$(str{id})})'	57
+'expr -> (str{expr$->$(Str)@Str$->$(str{s})})'	58
+'expr* -> (Attribute{expr*$->$(expr)@expr$->$(Attribute)})'	59
+'expr* -> (Call{expr*$->$(expr)@expr$->$(Call)})'	60
+'expr* -> (expr)'	61
+'expr* -> (expr), (expr)'	62
+'expr* -> (expr), (expr), (expr)'	63
+'expr* -> (expr), (expr), (expr), (expr)'	64
+'expr* -> (expr), (expr), (expr), (expr), (expr)'	65
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr)'	66
+'expr* -> (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr), (expr)'	67
+'keyword -> (str{arg}), (expr{value})'	68
+'keyword* -> (keyword)'	69
+'keyword* -> (keyword), (keyword)'	70
+'keyword* -> (keyword), (keyword), (keyword)'	71
+'keyword* -> (keyword), (keyword), (keyword), (keyword)'	72
+'operator -> (Add)'	73
+'operator -> (Sub)'	74
+'root -> (ClassDef)'	75
+'slice -> (Index)'	76
+'slice -> (Slice)'	77
+'stmt -> (Assign)'	78
+'stmt -> (AugAssign)'	79
+'stmt -> (Break)'	80
+'stmt -> (Call{stmt$->$(Expr)@Expr$->$(expr{value})@expr$->$(Call)})'	81
+'stmt -> (ClassDef)'	82
+'stmt -> (For)'	83
+'stmt -> (FunctionDef)'	84
+'stmt -> (If)'	85
+'stmt -> (ImportFrom)'	86
+'stmt -> (Return)'	87
+'stmt* -> (Call{stmt*$->$(stmt)@stmt$->$(Expr)@Expr$->$(expr{value})@expr$->$(Call)})'	88
+'stmt* -> (Call{stmt*$->$(stmt)@stmt$->$(Return)@Return$->$(expr{value})@expr$->$(Call)})'	89
+'stmt* -> (stmt)'	90
+'stmt* -> (stmt), (stmt)'	91
+'stmt* -> (stmt), (stmt), (stmt)'	92
+'stmt* -> (stmt), (stmt), (stmt), (stmt)'	93
+'stmt* -> (stmt), (stmt), (stmt), (stmt), (stmt)'	94
+'stmt* -> (stmt), (stmt), (stmt), (stmt), (stmt), (stmt)'	95
+'stmt* -> (stmt), (stmt), (stmt), (stmt), (stmt), (stmt), (stmt)'	96
+'stmt* -> (stmt), (stmt), (stmt), (stmt), (stmt), (stmt), (stmt), (stmt)'	97
+'stmt* -> (stmt), (stmt), (stmt), (stmt), (stmt), (stmt), (stmt), (stmt), (stmt), (stmt), (stmt)'	98
+'unaryop -> (Not)'	99

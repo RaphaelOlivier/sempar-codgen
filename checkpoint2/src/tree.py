@@ -160,7 +160,7 @@ class BuildingTree(Tree):
         rule_choices = self.grammar.rules_from_node()
         selected_probs = rule_probs[rule_choices]
         pred_rule = rule_choices[np.argmax(selected_probs)]
-        child_nodes = self.grammar.get_children(r)
+        child_nodes = self.grammar.get_children(pred_rule)
         self.current_node.set_rule(pred_rule, child_nodes)
         self.need_to_move=True
 

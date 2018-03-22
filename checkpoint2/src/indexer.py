@@ -42,36 +42,46 @@ def set_to_id(terminal_node_set, output_file):
 		index += 1
 	writer.close()
 
-def main():
-	'''
-		Read file from Django data set
-	'''
-	#train_data, dev_data, test_data = deserialize_from_file("data/django.cleaned.dataset.freq5.par_info.refact.space_only.bin")
-
-	#uncomment below for Hearthstone data set
+def run_hs():
 	train_data, dev_data, test_data = deserialize_from_file("data/hs.freq3.pre_suf.unary_closure.bin")
 
 
-	print("----- TRAIN -----")
-	train_length = len(train_data.examples)
-	print(train_length) #16000 instances for django
-	#print(train_data.terminal_vocab)
-	#write_to_file("hs_train_.txt", train_data, train_length)
+	print("----- TRAIN HS -----")
 	
-	#train_annot = train_data.annot_vocab.token_id_map
-	#export_id(train_annot, "indexer/annot_hs.txt")
-	#train_terminal = train_data.terminal_vocab.token_id_map
-	#export_id(train_terminal, "indexer/terminal_hs.txt")
-	#train_grammar = train_data.grammar.rule_to_id
-	#export_id(train_grammar, "indexer/rules_django.txt")
-	
-	
-	#train_nodes = train_data.grammar.node_type_to_id
-	#export_id(train_nodes, "indexer/nodes_django.tsv")
+	train_annot = train_data.annot_vocab.token_id_map
+	export_id(train_annot, "indexer/annot_vocab_hs.tsv")
+	train_terminal = train_data.terminal_vocab.token_id_map
+	export_id(train_terminal, "indexer/terminal_vocab_hs.tsv")
+	train_grammar = train_data.grammar.rule_to_id
+	export_id(train_grammar, "indexer/rules_hs.tsv")
+	train_nodes = train_data.grammar.node_type_to_id
+	export_id(train_nodes, "indexer/nodes_hs.tsv")
 	train_terminal = dev_data.grammar.terminal_nodes
-	#set_to_id(train_terminal, "indexer/terminal_django.tsv")
-	set_to_id(train_terminal, "indexer/fronter_nodes_hs.tsv")
-	print("success")
+	set_to_id(train_terminal, "indexer/frontier_nodes_hs.tsv")
+	print("done HS")
+
+def run_django():
+	train_data, dev_data, test_data = deserialize_from_file("data/django.cleaned.dataset.freq5.par_info.refact.space_only.bin")
+
+
+	print("----- TRAIN DJANGO -----")
+	
+	train_annot = train_data.annot_vocab.token_id_map
+	export_id(train_annot, "indexer/annot_vocab_django.tsv")
+	train_terminal = train_data.terminal_vocab.token_id_map
+	export_id(train_terminal, "indexer/terminal_vocab_django.tsv")
+	train_grammar = train_data.grammar.rule_to_id
+	export_id(train_grammar, "indexer/rules_django.tsv")
+	train_nodes = train_data.grammar.node_type_to_id
+	export_id(train_nodes, "indexer/nodes_django.tsv")
+	train_terminal = dev_data.grammar.terminal_nodes
+	set_to_id(train_terminal, "indexer/frontier_nodes_django.tsv")
+	print("done Django")
+
+def main():
+	print("----- START -----")
+	run_django()
+	run_hs()
 
 
 if __name__ == '__main__':

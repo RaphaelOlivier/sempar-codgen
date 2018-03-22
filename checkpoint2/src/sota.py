@@ -4,13 +4,13 @@ import random
 import math
 import sys
 
-from model import ASTNet
+from model1 import ASTNet
 
 from argparse import ArgumentParser
 from collections import Counter, defaultdict
 
 
-parser = ArgumentParser(description='Baseline Code Generator')
+parser = ArgumentParser(description='Checkpoint2 Code Generator')
 parser.add_argument('--data', type=str, default='hs',
                     help='Dataset to be used')
 parser.add_argument('--iter', type=int, default=20,

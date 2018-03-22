@@ -13,4 +13,6 @@ Our baseline was inspired by the paper [Grammar as a Foreign Language](https://a
     * *baseline.py* : the script. To run it, run the command `python baseline.py --mode chosen_mode --iter n_iterations [other dynet options]` with `chosen_mode` being `django` or `hs` (Hearthstone). Other implementation parameters are hardcoded in the file and can easily be changed.
     * *accuracy.py* : a small script to compute accuracy and BLEU score. File paths are harcoded. The script uses nltk as a dependancy.
 ### Checkpoint 2
-TODO
+* **src** : our code
+    * *grammar.py* : grammar model
+    * *indexer.py* : extract rules, nodes, and vocabulary from data set using some of Pengcheng Yin's code into tsv file

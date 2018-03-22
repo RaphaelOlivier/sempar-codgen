@@ -118,7 +118,8 @@ class Tree:
         if(self.need_to_move):
             self.current_node = self.current_node.next()
             self.current_node.set_action_type(grammar.action_type(self.current_node.node_type))
-
+        return bool(self.current_node)
+        
     def get_node_type(self):
         # value needed by the model
         return self.current_node.node_type

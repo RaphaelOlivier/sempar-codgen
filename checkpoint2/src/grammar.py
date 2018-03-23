@@ -69,6 +69,10 @@ class Indexer():
 		else:
 			return "apply"
 
+	@property
+	def vocab_length(self):
+		return len(self.terminal_vocab)
+
 	def rules_from_node(self):
 		rule_index_list = self.rules.values()
 		return np.array(list(rule_index_list))

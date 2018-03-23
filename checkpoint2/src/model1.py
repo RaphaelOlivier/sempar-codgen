@@ -10,8 +10,8 @@ from argparse import ArgumentParser
 from collections import Counter, defaultdict
 import tree as Tree
 
-args = namedtuple('args', ['numLayer','embeddingApplySize','embeddingGenSize','embeddedNodeSize',
-				'hiddenSize','attSize','dropout','learningRate'])(50, 128,128,64,256,32,0,0.001)
+args = namedtuple('args', ['numLayer','embeddingSourceSize','embeddingApplySize','embeddingGenSize','embeddingNodeSize',
+				'hiddenSize','attSize','dropout','learningRate'])(50,128,128,128,64,256,32,0,0.001)
 
 class ASTNet:
 	def __init__(self, args, vocabLengthSource, vocabLengthActionRule, vocabLengthNodes, vocabLengthTarget):
@@ -25,7 +25,8 @@ class ASTNet:
 		self.numLayer = args.numLayer
 		self.embeddingApplySize = args.embeddingApplySize
 		self.embeddingGenSize = args.embeddingGenSize
-		self.embeddingNodeType = args.embeddingNodeType
+		self.embeddingNodeSize = args.embeddingNodeSize
+		self.embeddingSourceSize = args.embeddingSourceSize
 		self.hiddenSize = args.hiddenSize
 		self.attSize = args.attSize
 		self.dropout = args.dropout
@@ -37,7 +38,7 @@ class ASTNet:
 		self.trainer = dy.AdamTrainer(self.ASTmodel, alpha=self.learningRate)
 
 		# source lookup
-		self.source_lookup = self.model.add_lookup_parameters((self.vocab_length_source, self.embedding_size))
+		self.source_lookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthSource, self.embeddingSourceSize))
 
 		# action embeddging matrix
 		self.actionRuleLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthActionRule, self.embeddingApplySize))
@@ -50,26 +51,26 @@ class ASTNet:
 
 
 		# adding paramteters to the AST Neural Network
-		self.attentionSource = self.model.add_parameters((self.attSize, self.hiddenSize * 2))
-		self.attentionTarget = self.model.add_parameters((self.attSize, self.numLayer*self.hiddenSize * 2))
-		self.attentionParameter = self.model.add_parameters((1, self.att_size))
+		self.attentionSource = self.ASTmodel.add_parameters((self.attSize, self.hiddenSize * 2))
+		self.attentionTarget = self.ASTmodel.add_parameters((self.attSize, self.numLayer*self.hiddenSize * 2))
+		self.attentionParameter = self.ASTmodel.add_parameters((1, self.attSize))
 
 
-		self.w_softmax = self.model.add_parameters((self.numLayer, self.hidden_size)) # should change whe hidden layers increase
-		self.b_softmax = self.model.add_parameters((self.vocab_length_target))
+		self.w_softmax = self.ASTmodel.add_parameters((self.numLayer, self.hiddenSize)) # should change whe hidden layers increase
+		self.b_softmax = self.ASTmodel.add_parameters((self.vocabLengthTarget))
 
 		# initializing the encoder and decoder
-		self.forward_encoder = dy.LSTMBuilder(self.num_layer, self.embedding_size, self.hidden_size, self.model)
-		self.backward_encoder = dy.LSTMBuilder(self.num_layer, self.embedding_size, self.hidden_size, self.model)
+		self.forward_encoder = dy.LSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.ASTmodel)
+		self.backward_encoder = dy.LSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.ASTmodel)
 
 		# check this
 		# embedding size + (previous action embedding + context vector + node type mebedding + parnnet feeding )
 		# parent feeding - hidden states of parent action + embedding of parent action
 
-		self.decoder = dy.VanillaLSTMBuilder(self.num_layer, self.hidden_size * 2 +self.embedding_size*5, self.hidden_size, self.model)
+		self.decoder = dy.VanillaLSTMBuilder(self.numLayer, self.hiddenSize * 2 +self.embeddingSourceSize*5, self.hiddenSize, self.ASTmodel)
 
 		# adding the selection matrix
-		self.w_selection_gen_softmax = self.model.add_parameters((2, self.hidden_size))
+		self.w_selection_gen_softmax = self.ASTmodel.add_parameters((2, self.hiddenSize))
 
 
 	def encoder(self, nl):
@@ -143,7 +144,7 @@ class ASTNet:
 			self.trainer.update()
 
 		def save(self, path):
-			self.model.save(path)
+			self.ASTmodel.save(path)
 
 		def get_learning_rate(self):
 			print ("learning rate" + str(self.learning_rate))
@@ -201,7 +202,7 @@ class ASTNet:
 
 			decoder_actions = []
 
-			current_state = self.decoder.initial_state().add_input(dy.concatenate([dy.vecInput(self.hiddenSize*3 + self.embeddingNodeType + self.embeddingApplySize), prev_action_embedding]))
+			current_state = self.decoder.initial_state().add_input(dy.concatenate([dy.vecInput(self.hiddenSize*3 + self.embeddingNodeSize + self.embeddingApplySize), prev_action_embedding]))
 
 			decoder_states.append(current_state)
 
@@ -312,7 +313,7 @@ class ASTNet:
 			decoder_states = [] # for parent feeding
 			decoder_actions = [] # for parent feeding
 
-			current_state = self.decoder.initial_state().add_input(dy.concatenate([dy.vecInput(self.hiddenSize*3 + self.embeddingNodeType + self.embeddingApplySize), prev_action_embedding]))
+			current_state = self.decoder.initial_state().add_input(dy.concatenate([dy.vecInput(self.hiddenSize*3 + self.embeddingNodeSize + self.embeddingApplySize), prev_action_embedding]))
 
 			decoder_states.append(current_state)
 

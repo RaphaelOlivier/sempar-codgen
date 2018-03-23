@@ -261,13 +261,14 @@ class ASTNode(object):
         return new_tree
 
     def to_dict(self,query,grammar,vocab):
+        # print(vocab)
         d = dict()
         node_type_id = grammar.get_node_type_id(self)
         d["node_type"]= node_type_id
         d["label"]=self.label
 
         if(len(self.children)):
-            d["action_type"] = "apply_rule"
+            d["action_type"] = "apply"
             children_info = [(c.type,c.label) for c in self.children]
             rule_id = grammar.rule_to_id[self.to_rule()]
             d["rule"]=rule_id
@@ -280,24 +281,47 @@ class ASTNode(object):
             d["action_type"] = "gen"
             assert(type(self) is not Rule)
             if(type(self.value) is not str):
-                tokens = [self.value]
+                tokens = [self.value] + ["<eos>"]
             else:
-                tokens = self.value.split()
+                tokens = self.value.split() + ["<eos>"]
             tokens_type=[]
-            tokens_index=[]
+            tokens_vocab_index=[]
+            tokens_query_index=[]
             for token in tokens:
-                if(str(token) in query):
-                    tokens_type.append("copy")
-                    tokens_index.append(query.index(str(token)))
-                else:
+                if(token in vocab):
                     tokens_type.append("vocab")
-                    tokens_index.append(vocab[token])
-            tokens.append("eos")
-            tokens_type.append("vocab")
-            tokens_index.append(vocab.eos)
+                    tokens_vocab_index.append(vocab[token])
+
+                    if(str(token) in query):
+                        tokens_query_index.append(query.index(str(token)))
+                    else:
+                        tokens_query_index.append(None)
+
+                elif(str(token) in vocab):
+                    tokens_type.append("vocab")
+                    tokens_vocab_index.append(vocab[token])
+                    if(str(token) in query):
+                        tokens_query_index.append(query.index(str(token)))
+                    else:
+                        tokens_query_index.append(None)
+
+                else:
+                    # print(token,query)
+                    if(str(token) in query):
+                        tokens_type.append("copy")
+                        tokens_query_index.append(query.index(str(token)))
+                        tokens_vocab_index.append(vocab["<unk>"])
+                    else: # word is nowhere : SHOULDN'T HAPPEN BUT DOES
+                        print self.value,"||||||", query
+                        print "Impossible word :",token
+                        tokens_type.append("vocab")
+                        tokens_query_index.append(None)
+                        tokens_vocab_index.append(vocab["<unk>"])
+
             d["tokens"]=tokens
             d["tokens_type"]=tokens_type
-            d["tokens_index"]=tokens_index
+            d["tokens_query_index"]=tokens_query_index
+            d["tokens_vocab_index"]=tokens_vocab_index
 
         return d
 

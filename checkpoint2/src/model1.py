@@ -1,7 +1,6 @@
 import dynet as dy
 import numpy as np
 from collections import namedtuple
-import dynet as dy
 import time
 import random
 import math
@@ -179,14 +178,14 @@ class ASTNet:
 
 		return context_vector
 
-	def get_gen_copy_embedding(current_state, context_vector, encoded_states):
+	def get_gen_copy_embedding(self,current_state, context_vector, encoded_states):
 
 			copy_vectors = []
 
 			for encoded_state in encoded_states:
-				copy_vectors.append(dy.concatenate(encoded_state, current_state, context_vector))
+				copy_vectors.append(dy.concatenate([encoded_state, current_state.output(), context_vector]))
 
-			c_t = dy.tanh(np.array(copy_vectors))
+			c_t = dy.tanh(dy.concatenate(copy_vectors))
 
 			copy_probs = dy.softmax(c_t)
 
@@ -229,7 +228,7 @@ class ASTNet:
 		parent_action = dy.vecInput(self.hiddenSize+self.embeddingApplySize)
 		current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
 		decoder_states.append(current_state)
-		# action_type = apply_rule
+		# action_type = apply
 		current_apply_action_embedding = self.get_apply_action_embedding(current_state, w, b)  # affine tf
 		golden_next_rule = goldenTree.get_oracle_rule()
 		item_loss = dy.pickneglogsoftmax(current_apply_action_embedding, golden_next_rule)
@@ -245,6 +244,8 @@ class ASTNet:
 			parent_time =  goldenTree.get_parent_time()
 
 			frontier_node_type_embedding = self.nodeTypeLookup[goldenTree.get_node_type()]
+			print("parent time :",parent_time)
+			print(len(decoder_states))
 
 			parent_action = self.parent_feed(decoder_states[parent_time].output(), decoder_actions[parent_time])
 
@@ -253,13 +254,13 @@ class ASTNet:
 			decoder_states.append(current_state)
 
 			action_type = goldenTree.get_action_type()  # assuming the tree module manages to get the node type
-
-			if action_type == "apply_rule":
+			print("action type :",action_type)
+			if action_type == "apply":
 
 				current_apply_action_embedding = self.get_apply_action_embedding(current_state, w, b)  # affine tf
 
 				golden_next_rule = goldenTree.get_oracle_rule()
-
+				#print("next rule :",golden_next_rule)
 				item_loss = dy.pickneglogsoftmax(current_apply_action_embedding, golden_next_rule)
 
 				prev_action_embedding = self.actionRuleLookup[golden_next_rule]
@@ -268,37 +269,44 @@ class ASTNet:
 
 				losses.append(item_loss)
 
-			elif action_type == "gen":
+			else:
+				assert(action_type == "gen")
+				foundEmbedding = False
+				item_loss = dy.scalarInput(0)
 
-				item_loss = dynet.scalarInput(0)
+				selection_prob = (dy.log_softmax(sel_gen * current_state.output()))
 
-				selection_prob = (dy.log_softmax(sel_gen * current_state))
+				goldentoken_vocab, goldentoken_copy, in_vocab = goldenTree.get_oracle_token()
 
 				# words generated from vocabulary
 
-				goldentoken = goldenTree.get_oracle_token("vocab")
+				if(in_vocab):
 
-				if(goldentoken is not None):
+					current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, w, b)  # affine tf over gen vocab
 
-					current_gen_action_embedding = self.get_gen_embedding(current_state, w, b)  # affine tf over gen vocab
+					item_loss += selection_prob[0] + dy.pickneglogsoftmax(current_gen_action_embedding, goldentoken_vocab)
 
-					item_loss += dy.pickneglogsoftmax(selection_prob(0) * current_gen_action_embedding, goldentoken)
-
-					prev_action_embedding = self.gentokenLookup[goldentoken]
-
+					prev_action_embedding = self.gentokenLookup[goldentoken_vocab]
 					decoder_actions.append(prev_action_embedding)
+					found_embedding=True
 
 				# words copied from the sentence
 
-				goldentoken = goldenTree.get_oracle_token("copy")
-
-				if(goldentoken is not None):
+				if(goldentoken_copy is not None):
 
 					copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
 
-					item_loss += dy.pickneglogsoftmax(selection_prob(1) * copy_probs, goldentoken)
+					item_loss += selection_prob[1] + dy.pickneglogsoftmax(copy_probs, goldentoken_copy)
+					found_embedding = True
 
+					if not in_vocab: #goldentoken_vocab=unk
+						prev_action_embedding = self.gentokenLookup[goldentoken_vocab]
+						decoder_actions.append(prev_action_embedding)
+
+				assert(found_embedding)
 				losses.append(item_loss)
+
+
 
 			goldenTree.move()
 
@@ -311,10 +319,11 @@ class ASTNet:
 		s = dy.transpose(self.actionRuleLookup) * g
 		return s
 
-	def get_gen_vocab_embedding(current_state, context_vector, w, b):
+	def get_gen_vocab_embedding(self,current_state, context_vector, w, b):
 
-		current_state = dy.concatenate([current_state, context_vector])
-		s = dy.affine_transform([b, w, current_state.output()])
+		# state = dy.concatenate([current_state.output(), context_vector])
+		state = current_state.output()
+		s = dy.affine_transform([b, w, state])
 		g = dy.tanh(s)
 		s = dy.transpose(self.gentokenLookup) * g
 		return s
@@ -360,6 +369,7 @@ class ASTNet:
 
 			node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
 
+
 			parent_action = self.parent_feed(decoder_states[parent_time], decoder_actions[parent_time])
 
 			current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, node_type_embedding)
@@ -368,7 +378,7 @@ class ASTNet:
 
 			action_type = tree.get_action_type()  # assuming the tree module manages to get the node type
 
-			if action_type == "apply_rule":
+			if action_type == "apply":
 
 				current_apply_action_embedding = self.get_apply_action_embedding(current_state, w, b) # output of the lstm
 
@@ -390,7 +400,7 @@ class ASTNet:
 
 				if selected_action == 0:
 
-					current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, w, b)  # affine tf over gen vocab
+					current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, w, b)  # affine tf over gen vocab
 
 					rule_probs = (dy.log_softmax(current_gen_apply_action_embedding)).value() # check if transpose needed
 

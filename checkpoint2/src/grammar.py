@@ -33,7 +33,7 @@ class Indexer():
 		self.annot_vocab = Indexer.index_reader("../../data/indexer/annot_vocab_"+self.mode+".tsv", False, False)
 		self.terminal_vocab = Indexer.index_reader("../../data/indexer/terminal_vocab_"+self.mode+".tsv", False, False)
 
-		self.rules_index = {v:k for k,v in self.rules.items()}
+		#self.rules_index = {v:k for k,v in self.rules.items()}
 		self.node_types_index = {v:k for k,v in self.node_types.items()}
 		self.frontier_nodes_index = {v:k for k,v in self.frontier_nodes.items()}
 		self.annot_vocab_index = {v:k for k,v in self.annot_vocab.items()}
@@ -46,6 +46,7 @@ class Indexer():
 			for each_line in input_file.readlines():
 				# print(each_line)
 				value, index = each_line.rstrip().split("\t")
+				index = int(index)
 				if remove_paranthesis:
 					value = value.replace("(", "").replace(")", "")
 				if index_to_val:
@@ -58,13 +59,16 @@ class Indexer():
 		return self.node_types[token]
 
 	def get_vocab_index(self, token):
+		# print(self.terminal_vocab)
 		return self.terminal_vocab[token]
 
 	def get_vocab(self, token_index):
 		return self.terminal_vocab_index[token_index]
 
 	def action_type(self, node_type):
-		if node_type in self.frontier_nodes:
+		# print(self.node_types_index)
+		# print(self.node_types_index[node_type])
+		if self.node_types_index[node_type] in self.frontier_nodes.keys():
 			return "gen"
 		else:
 			return "apply"

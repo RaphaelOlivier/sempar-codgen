@@ -158,6 +158,7 @@ class ASTNet:
 			return [parent_action_hidden_state, parent_action_embedding]
 
 		def decoder_state(self, previous_action, context_vector, parent_action, current_frontier_node_type  ):
+
 			new_input = dy.concatenate([previous_action, context_vector, parent_action, current_frontier_node_type])
 			new_state = previous_state.add_input(new_input)
 			return new_state
@@ -165,16 +166,34 @@ class ASTNet:
 		def get_att_context_vector(self, scr_output_matrix , current_state, fixed_attentional_component):
 
 			w1_att_tgt = dy.parameter(self.attentionTarget)
+
 			w2_att = dy.parameter(self.attentionParameter)
 
 			target_output_embedding = dy.concatenate(list(current_state.s()))
 
 			a_t = dy.transpose(w2_att * dy.tanh(dy.colwise_add(fixed_attentional_component, w1_att_tgt * tgt_output_embedding)))
+
 			alignment = dy.softmax(a_t)
 
 			context_vector = src_output_matrix * alignment
 
 			return context_vector
+
+		def get_gen_copy_embedding(current_state, context_vector, encoded_states):
+
+
+			w_copy = dy.parameter(self.w_softmax) # the weight matrix
+
+			b_copy = dy.parameter(self.b_softmax)
+
+			copy_vectors = None
+
+			for encoded_state in 
+
+
+
+
+
 
 		def decode_to_loss(self, vectors, output):
 
@@ -310,6 +329,7 @@ class ASTNet:
 			# node type - 64  - need to change this
 
 			decoder_states = [] # for parent feeding
+
 			decoder_actions = [] # for parent feeding
 
 			current_state = self.decoder.initial_state().add_input(dy.concatenate([dy.vecInput(self.hiddenSize*3 + self.embeddingNodeType + self.embeddingApplySize), prev_action_embedding]))
@@ -367,14 +387,12 @@ class ASTNet:
 						tree.set_token("vocab",pred_token)
 
 					elif selected_action == 1:
+
 						copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
 
 						pred_token = np.argmax(copy_probs)
 
-						tree.set_token("copy",pred_token)
-						current_gen_action_embedding = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
-						# to do
-						copy_tk = np.argmax()
+						tree.set_token("copy", pred_token)
 
 					prev_action_embedding = self.gentokenLookup(pred_token)
 

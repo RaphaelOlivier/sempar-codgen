@@ -14,16 +14,12 @@ args = namedtuple('args', ['numLayer','embeddingApplySize','embeddingGenSize','e
 				'hiddenSize','attSize','dropout','learningRate'])(50, 128,128,64,256,32,0,0.001)
 
 class ASTNet:
-	def __init__(self, args, targetIndexer, vocabLengthSource, vocabLengthActionRule, vocabLengthNodes, vocabLengthTarget):
+	def __init__(self, args, vocabLengthSource, vocabLengthActionRule, vocabLengthNodes, vocabLengthTarget):
 
-		self.targetIndexer = targetIndexer
 		self.vocabLengthSource = vocabLengthSource
 		self.vocabLengthActionRule = vocabLengthActionRule
 		self.vocabLengthNodes = vocabLengthNodes
 		self.vocabLengthTarget = vocabLengthTarget
-
-		self.unkTarget = self.targetIndexer["<unk>"]
-		self.eosTarget = self.targetIndexer["</s>"]
 
 		# parameters for the model
 		self.numLayer = args.numLayer
@@ -65,9 +61,6 @@ class ASTNet:
 		# initializing the encoder and decoder
 		self.forward_encoder = dy.LSTMBuilder(self.num_layer, self.embedding_size, self.hidden_size, self.model)
 		self.backward_encoder = dy.LSTMBuilder(self.num_layer, self.embedding_size, self.hidden_size, self.model)
-
-		self.eos_target = self.targetIndexer['root']
-		self.unk_target = self.targetIndexer['<unk>']
 
 		# check this
 		# embedding size + (previous action embedding + context vector + node type mebedding + parnnet feeding )
@@ -198,7 +191,7 @@ class ASTNet:
 
 			encoded_states = dy.concatenate_cols(encoded) # used for context vecor
 
-			prev_action_embedding = self.actionRuleLookup(self.eos_target)
+			prev_action_embedding = self.actionRuleLookup(dy.vecInput(self.embeddingApplySize))
 
 			# parent_action - 2* 256
 			# context vector - 2*256
@@ -269,9 +262,12 @@ class ASTNet:
 							decoder_action.append(prev_action_embedding)
 
 						elif selected_action == 1:
-							pass
 
-						# to do
+							copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
+
+							pred_token = np.argmax(copy_probs)
+
+							tree.set_token("copy",pred_token)
 
 				tree.move()
 
@@ -307,7 +303,7 @@ class ASTNet:
 
 			encoded_states = dy.concatenate_cols(encoded) # used for context vecor
 
-			prev_action_embedding = self.actionRuleLookup(self.eos_target) # starts with the root
+			prev_action_embedding = self.actionRuleLookup(dy.vecInput(self.embeddingApplySize)) # starts with the root
 
 			# parent_action - 2* 256
 			# context vector - 2*256
@@ -368,21 +364,19 @@ class ASTNet:
 
 						pred_token = np.argmax(selected_probs)
 
-						token = tree.set_token(pred_token)
+						tree.set_token("vocab",pred_token)
 
 					elif selected_action == 1:
-						pass
 
-						current_gen_action_embedding = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
-						# to do
-						copy_tk = np.argmax() 
+						copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
+
+						pred_token = np.argmax(copy_probs)
+
+						tree.set_token("copy",pred_token)
 
 					prev_action_embedding = self.gentokenLookup(pred_token)
 
 					decoder_action.append(prev_action_embedding)
-
-					if( token == self.eos_target):
-						return
 
 					tree.move()
 

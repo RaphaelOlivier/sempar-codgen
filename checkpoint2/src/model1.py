@@ -54,7 +54,6 @@ class ASTNet:
 		self.attentionTarget = self.model.add_parameters((self.attSize, self.numLayer*self.hiddenSize * 2))
 		self.attentionParameter = self.model.add_parameters((1, self.att_size))
 
-
 		self.w_softmax = self.model.add_parameters((self.numLayer, self.hidden_size)) # should change whe hidden layers increase
 		self.b_softmax = self.model.add_parameters((self.vocab_length_target))
 
@@ -181,14 +180,16 @@ class ASTNet:
 
 	def get_gen_copy_embedding(current_state, context_vector, encoded_states):
 
+			copy_vectors = []
 
-		w_copy = dy.parameter(self.w_softmax) # the weight matrix
-		b_copy = dy.parameter(self.b_softmax)
+			for encoded_state in encoded_states:
+				copy_vectors.append(dy.concatenate(encoded_state, current_state, context_vector))
 
-		copy_vectors = None
+			c_t = dy.tanh(np.array(copy_vectors))
 
-		#for encoded_state in
+			copy_probs = dy.softmax(c_t)
 
+			return copy_probs
 
 	def decode_to_loss(self, vectors, output):
 
@@ -294,7 +295,7 @@ class ASTNet:
 			s = self.actionRuleLookup * g
 			return s
 
-		def get_gen_embedding(current_state, w, b, context_vector):
+		def get_gen_vocab_embedding(current_state, w, b, context_vector):
 
 			current_state = dy.concatenate([current_state, context_vector])
 			s = dy.affine_transform([b, w, current_state.output()])
@@ -373,7 +374,7 @@ class ASTNet:
 
 					if selected_action == 0:
 
-						current_gen_action_embedding = self.get_gen_embedding(current_state, w, b)  # affine tf over gen vocab
+						current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, w, b)  # affine tf over gen vocab
 
 						rule_probs = (dy.log_softmax(current_gen_apply_action_embedding)).value() # check if transpose needed
 

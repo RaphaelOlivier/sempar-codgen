@@ -66,7 +66,7 @@ class SourceDataset:
         with open(source_file, "r", encoding='utf-8', errors='ignore') as s_file:
             for source_line in s_file:
                 sent = source_line.strip().split(" ") + ["<eos>"]
-                sent_int = [self.indexer[x] for x in sent] + ["<eos>"]
+                sent_int = [self.indexer[x] for x in sent] 
                 data_str.append(sent)
                 data_index.append(sent_int)
         return data_str, data_index

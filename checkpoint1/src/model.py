@@ -42,16 +42,6 @@ class Seq2SeqAttention:
     def embed(self, sentence):
         return [self.source_lookup[x] for x in sentence]
 
-    def singleLSTM(self, initial_state, input_vectors):
-        state = initial_state
-        output_vectors = []
-
-        for vector in input_vectors:
-            state = state.add_input(vector)
-            output_vector = state.output()
-            output_vectors.append(output_vector)
-        return output_vectors
-
     def encode(self, sentence):
 
         # forward LSTM

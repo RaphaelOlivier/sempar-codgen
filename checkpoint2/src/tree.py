@@ -8,19 +8,21 @@ class SubTree:
         self.tokens_type = None
         self.tokens_index = None
         self.time_step = None
-        self.parent = None
+        self.parent = parent
         self.children = None
         self.child_to_explore = 0
 
     def next(self, old_time=None):
         # recursive function to return the correct next node
         assert(self.is_built())
-        if(old_time == None):
+        # print(len(self.children),self.child_to_explore)
+        if(old_time is None):
             old_time = self.time_step
-        if(self.child_to_explore < len(children)):
+        if(self.child_to_explore < len(self.children)):
             child = self.children[self.child_to_explore]
             self.child_to_explore += 1
             child.time_step = old_time+1
+            print(child.node_type,child.parent,child.time_step)
             return child
         elif self.parent == None:
             return None
@@ -28,7 +30,7 @@ class SubTree:
             return self.parent.next(old_time)
 
     @staticmethod
-    def root():
+    def root(grammar):
         # create a subtree with only the root node
         st = SubTree(node_type=grammar.get_node_index("root"), label=None, parent=None)
         st.time_step = 0
@@ -111,14 +113,15 @@ class Tree:
         # abstract class for trees
         self.grammar = grammar
         self.current_node = None
+        self.root_node = None
         self.need_to_move = True
-        self.sentence = None
 
     def move(self):
         # shift the node to the next one, and specify the action type associated to its frontier node
+        print(self.need_to_move)
         if(self.need_to_move):
             self.current_node = self.current_node.next()
-            self.current_node.set_action_type(grammar.action_type(self.current_node.node_type))
+            self.current_node.set_action_type(self.grammar.action_type(self.current_node.node_type))
         return bool(self.current_node)
 
     def get_node_type(self):
@@ -136,28 +139,25 @@ class Tree:
         # to know if decoding is over (current node is None)
         return self.current_node == None
 
-    @staticmethod
-    def make_from_dict(grammar, d):
-        t = Tree(grammar)
-        t.current_node = SubTree.from_dict(d)
-        return t
-
     def to_dict(self, grammar):
         d = self.current_node.toDict()
         return d
 
+    def set_to_root(self):
+        self.current_node = self.root_node
 
 class BuildingTree(Tree):
     # Trees used in prediction
     def __init__(self, grammar):
         # create a tree with only a root node
         super.__init__(self, grammar)
-        self.current_node = SubTree.root()
-        self.current_node.action_type = "apply"
+        self.current_node = SubTree.root(grammar)
+        self.root_node = current_node
+        self.current_node.action_type = "apply_rule"
 
     def pick_and_get_rule(self, rules_probs):
         # from the rule probabilities, find the best one conditionned to the frontier node type and update the tree
-        assert(self.current_node.action_type == "apply")
+        assert(self.current_node.action_type == "apply_rule")
         rule_choices = self.grammar.rules_from_node()
         selected_probs = rule_probs[rule_choices]
         pred_rule = rule_choices[np.argmax(selected_probs)]
@@ -169,7 +169,7 @@ class BuildingTree(Tree):
     def set_token(self, tktype, tkindex):
         # set a token, and its child if it was not an eos token
         assert(self.current_node.action_type == "gen")
-        end = (tkindex==grammar.get_vocab_index("<eos>"))
+        end = (tkindex==self.grammar.get_vocab_index("<eos>"))
         if(tktype=="vocab"):
             token = self.grammar.get_vocab(tkindex)
         else:
@@ -183,30 +183,41 @@ class BuildingTree(Tree):
         else:
             self.need_to_move = False
 
-    def set_query(self,query):
-        self.sentence = query
+
 
 
 class OracleTree(Tree):
     # Golden rees used in training
-    def __init__(self, grammar, indexedString):
+    def __init__(self, grammar):
         # create from an ast
-        super.__init__(self, grammar)
-        Tree.make_from_dict(grammar, indexedString)
-        self.current_token_index=0
+        # print(type(grammar))
+        super(OracleTree,self).__init__(grammar)
+        self.sentence=None
+
+    def set_query(self,sentence):
+        self.sentence=sentence
 
     def get_oracle_rule(self):
         # returns the correct rule for loss computation in the model
-        assert(self.current_action_type == "apply")
+        print(self.get_action_type())
+        assert(self.get_action_type() == "apply_rule")
         self.need_to_move=True
         return self.current_node.rule
+
+    @staticmethod
+    def make_from_dict(grammar, d):
+        t = OracleTree(grammar)
+        t.current_node = SubTree.from_dict(d)
+        t.current_node.time_step=0
+        t.root_node = t.current_node
+        return t
 
 
     def get_oracle_token(self):
         # returns the correct token for loss computation in the model
         assert(self.current_node.action_type == "gen")
         token,tktype,tkindex = self.current_node.get_token_info(self.current_token_index)
-        if(tkindex==grammar.get_vocab_index("<eos>")):
+        if(tkindex==self.grammar.get_vocab_index("<eos>")):
             self.need_to_move=True
             self.current_token_index=0
         else:

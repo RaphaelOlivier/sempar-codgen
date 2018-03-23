@@ -1,5 +1,5 @@
 import json
-from tree import Tree
+from tree import OracleTree
 
 def json_to_tree_dataset(path,grammar):
     tree_list=[]
@@ -7,7 +7,9 @@ def json_to_tree_dataset(path,grammar):
         json_list = json.load(f)
         assert(type(json_list)==list)
         for dic in json_list:
-            tree_list.append(Tree.make_from_dict(grammar,dic))
+            t = OracleTree.make_from_dict(grammar,dic)
+            assert(type(t)==OracleTree)
+            tree_list.append(t)
     return tree_list
 
 def tree_to_json_dataset(path,grammar,tree_list):

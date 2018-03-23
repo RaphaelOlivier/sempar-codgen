@@ -375,7 +375,7 @@ class ASTNet:
 
 						current_gen_action_embedding = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
 						# to do
-						copy_tk = np.argmax() 
+						copy_tk = np.argmax()
 
 					prev_action_embedding = self.gentokenLookup(pred_token)
 

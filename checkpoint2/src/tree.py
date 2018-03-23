@@ -170,7 +170,7 @@ class BuildingTree(Tree):
         # set a token, and its child if it was not an eos token
         assert(self.current_node.action_type == "gen")
         end = (tkindex==grammar.get_vocab_index("<eos>"))
-        if(tktype="vocab"):
+        if(tktype=="vocab"):
             token = self.grammar.get_vocab(tkindex)
         else:
             assert(tktype=="copy")

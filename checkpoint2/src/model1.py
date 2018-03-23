@@ -128,162 +128,162 @@ class ASTNet:
 			output_sentence = self.decode_to_prediction(encoded, 2*len(input_sentence))
 		return output_sentence
 
-		def set_dropout(self):
-		    self.forward_encoder.set_dropout(self.dropout)
-		    self.backward_encoder.set_dropout(self.dropout)
-		    self.decoder.set_dropout(self.dropout)
+	def set_dropout(self):
+	    self.forward_encoder.set_dropout(self.dropout)
+	    self.backward_encoder.set_dropout(self.dropout)
+	    self.decoder.set_dropout(self.dropout)
 
-		def disable_dropout(self):
-		    self.forward_encoder.disable_dropout()
-		    self.backward_encoder.disable_dropout()
-		    self.decoder.disable_dropout()
+	def disable_dropout(self):
+	    self.forward_encoder.disable_dropout()
+	    self.backward_encoder.disable_dropout()
+	    self.decoder.disable_dropout()
 
-		def backward_prop_and_update_parameters(self, loss):
-			loss.backward()
-			self.trainer.update()
+	def backward_prop_and_update_parameters(self, loss):
+		loss.backward()
+		self.trainer.update()
 
-		def save(self, path):
-			self.model.save(path)
+	def save(self, path):
+		self.model.save(path)
 
-		def get_learning_rate(self):
-			print ("learning rate" + str(self.learning_rate))
-			return self.learning_rate
+	def get_learning_rate(self):
+		print ("learning rate" + str(self.learning_rate))
+		return self.learning_rate
 
-		def reduce_learning_rate(self, factor):
-			self.learning_rate = self.learning_rate/factor
-			self.trainer.learning_rate = self.trainer.learning_rate/factor
+	def reduce_learning_rate(self, factor):
+		self.learning_rate = self.learning_rate/factor
+		self.trainer.learning_rate = self.trainer.learning_rate/factor
 
-		def parent_feed(self, parent_action_hidden_state, parent_action_embedding ):
+	def parent_feed(self, parent_action_hidden_state, parent_action_embedding ):
 
-			return [parent_action_hidden_state, parent_action_embedding]
+		return [parent_action_hidden_state, parent_action_embedding]
 
-		def decoder_state(self, previous_action, context_vector, parent_action, current_frontier_node_type  ):
+	def decoder_state(self, previous_action, context_vector, parent_action, current_frontier_node_type  ):
 
-			new_input = dy.concatenate([previous_action, context_vector, parent_action, current_frontier_node_type])
-			new_state = previous_state.add_input(new_input)
-			return new_state
+		new_input = dy.concatenate([previous_action, context_vector, parent_action, current_frontier_node_type])
+		new_state = previous_state.add_input(new_input)
+		return new_state
 
-		def get_att_context_vector(self, scr_output_matrix , current_state, fixed_attentional_component):
+	def get_att_context_vector(self, scr_output_matrix , current_state, fixed_attentional_component):
 
-			w1_att_tgt = dy.parameter(self.attentionTarget)
+		w1_att_tgt = dy.parameter(self.attentionTarget)
 
-			w2_att = dy.parameter(self.attentionParameter)
+		w2_att = dy.parameter(self.attentionParameter)
 
-			target_output_embedding = dy.concatenate(list(current_state.s()))
+		target_output_embedding = dy.concatenate(list(current_state.s()))
 
-			a_t = dy.transpose(w2_att * dy.tanh(dy.colwise_add(fixed_attentional_component, w1_att_tgt * tgt_output_embedding)))
+		a_t = dy.transpose(w2_att * dy.tanh(dy.colwise_add(fixed_attentional_component, w1_att_tgt * tgt_output_embedding)))
 
-			alignment = dy.softmax(a_t)
+		alignment = dy.softmax(a_t)
 
-			context_vector = src_output_matrix * alignment
+		context_vector = src_output_matrix * alignment
 
-			return context_vector
+		return context_vector
 
-		def get_gen_copy_embedding(current_state, context_vector, encoded_states):
-
-
-			w_copy = dy.parameter(self.w_softmax) # the weight matrix
-			b_copy = dy.parameter(self.b_softmax)
-
-			copy_vectors = None
-
-			for encoded_state in 
+	def get_gen_copy_embedding(current_state, context_vector, encoded_states):
 
 
-		def decode_to_loss(self, vectors, output):
+		w_copy = dy.parameter(self.w_softmax) # the weight matrix
+		b_copy = dy.parameter(self.b_softmax)
 
-			goldenTree = Tree.OracleTree(output) # check this too
+		copy_vectors = None
 
-			sel_gen = dy.parameter(self.w_selection_gen_softmax)
+		#for encoded_state in
 
-			w = dy.parameter(self.w_softmax) # the weight matrix
-			b = dy.parameter(self.b_softmax)
 
-			w1 = dy.parameter(self.attentionSource) # the weight matrix for context vector
+	def decode_to_loss(self, vectors, output):
 
-			attentional_component = w1 * encoded_states
+		goldenTree = Tree.OracleTree(output) # check this too
 
-			encoded_states = dy.concatenate_cols(encoded) # used for context vecor
+		sel_gen = dy.parameter(self.w_selection_gen_softmax)
 
-			prev_action_embedding = self.actionRuleLookup(dy.vecInput(self.embeddingApplySize))
+		w = dy.parameter(self.w_softmax) # the weight matrix
+		b = dy.parameter(self.b_softmax)
 
-			# parent_action - 2* 256
-			# context vector - 2*256
-			# node type - 64  - need to change this
+		w1 = dy.parameter(self.attentionSource) # the weight matrix for context vector
 
-			decoder_states = [] # used in LSTM models for parent feed
+		attentional_component = w1 * encoded_states
 
-			decoder_actions = []
+		encoded_states = dy.concatenate_cols(encoded) # used for context vecor
 
-			current_state = self.decoder.initial_state().add_input(dy.concatenate([dy.vecInput(self.hiddenSize*3 + self.embeddingNodeType + self.embeddingApplySize), prev_action_embedding]))
+		prev_action_embedding = self.actionRuleLookup(dy.vecInput(self.embeddingApplySize))
+
+		# parent_action - 2* 256
+		# context vector - 2*256
+		# node type - 64  - need to change this
+
+		decoder_states = [] # used in LSTM models for parent feed
+
+		decoder_actions = []
+
+		current_state = self.decoder.initial_state().add_input(dy.concatenate([dy.vecInput(self.hiddenSize*3 + self.embeddingNodeType + self.embeddingApplySize), prev_action_embedding]))
+
+		decoder_states.append(current_state)
+
+		resultant_parse_tree = ""
+
+		losses = []
+
+		decoder_actions.append(prev_action_embedding) # storing the hidden states for further prediction
+
+		while(tree.has_ended()):
+
+			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
+
+			parent_time =  tree.get_parent_time()
+
+			frontier_node_type_embedding = self.nodeTypeLookup(tree.get_frontier_node_type())
+
+			parent_action = self.parent_feed(decoder_states[parent_time], decoder_action[parent_time])
+
+			current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
 
 			decoder_states.append(current_state)
 
-			resultant_parse_tree = ""
+			action_type = tree.get_action_type()  # assuming the tree module manages to get the node type
 
-			losses = []
+			if action_type == "apply":
 
-			decoder_actions.append(prev_action_embedding) # storing the hidden states for further prediction
+				current_apply_action_embedding = self.get_apply_action_embedding(current_state)  # affine tf
 
-			while(tree.has_ended()):
+				golden_next_rule = goldentree.get_oracle_rule()
 
-				context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
+				item_loss = dy.pickneglogsoftmax(current_apply_action_embedding, golden_next_rule)
 
-				parent_time =  tree.get_parent_time()
+				prev_action_embedding = self.actionRuleLookup(golden_next_rule)
 
-				frontier_node_type_embedding = self.nodeTypeLookup(tree.get_frontier_node_type())
+				decoder_action.append(prev_action_embedding)
 
-				parent_action = self.parent_feed(decoder_states[parent_time], decoder_action[parent_time])
+				losses.append(item_loss)
 
-				current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
+				if action_type == "gen":
 
-				decoder_states.append(current_state)
+					selection_prob = (dy.log_softmax(sel_gen * current_state)).value()
 
-				action_type = tree.get_action_type()  # assuming the tree module manages to get the node type
+					selected_action = np.argmax(selection_prob)
 
-				if action_type == "apply":
+					if selected_action == 0:
 
-					current_apply_action_embedding = self.get_apply_action_embedding(current_state)  # affine tf
+						current_gen_action_embedding = self.get_gen_embedding(current_state, w, b)  # affine tf over gen vocab
 
-					golden_next_rule = goldentree.get_oracle_rule()
+						goldentoken = goldenTree.get_oracle_token()
 
-					item_loss = dy.pickneglogsoftmax(current_apply_action_embedding, golden_next_rule)
+						item_loss = dy.pickneglogsoftmax(current_gen_action_embedding, goldentoken)
 
-					prev_action_embedding = self.actionRuleLookup(golden_next_rule)
+						losses.append(item_loss)
 
-					decoder_action.append(prev_action_embedding)
+						prev_action_embedding = self.gentokenLookup(goldentoken)
 
-					losses.append(item_loss)
+						decoder_action.append(prev_action_embedding)
 
-					if action_type == "gen":
+					elif selected_action == 1:
 
-						selection_prob = (dy.log_softmax(sel_gen * current_state)).value()
+						copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
 
-						selected_action = np.argmax(selection_prob)
+						pred_token = np.argmax(copy_probs)
 
-						if selected_action == 0:
+						tree.set_token("copy",pred_token)
 
-							current_gen_action_embedding = self.get_gen_embedding(current_state, w, b)  # affine tf over gen vocab
-
-							goldentoken = goldenTree.get_oracle_token()
-
-							item_loss = dy.pickneglogsoftmax(current_gen_action_embedding, goldentoken)
-
-							losses.append(item_loss)
-
-							prev_action_embedding = self.gentokenLookup(goldentoken)
-
-							decoder_action.append(prev_action_embedding)
-
-						elif selected_action == 1:
-
-							copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
-
-							pred_token = np.argmax(copy_probs)
-
-							tree.set_token("copy",pred_token)
-
-				tree.move()
+			tree.move()
 
 		return losses
 

@@ -112,6 +112,7 @@ class Tree:
         self.grammar = grammar
         self.current_node = None
         self.need_to_move = True
+        self.sentence = None
 
     def move(self):
         # shift the node to the next one, and specify the action type associated to its frontier node
@@ -164,16 +165,25 @@ class BuildingTree(Tree):
         self.current_node.set_rule(pred_rule, child_nodes)
         self.need_to_move=True
 
-    def set_token(self, token, tktype, tkindex):
+    def set_token(self, tktype, tkindex):
         # set a token, and its child if it was not an eos token
         assert(self.current_node.action_type == "gen")
-        self.current_node.set_token(token, tktype, tkindex)
         end = (tkindex==grammar.get_vocab_index("<eos>"))
+        if(tktype="vocab"):
+            token = self.grammar.get_vocab(tkindex)
+        else:
+            assert(tktype=="copy")
+            token = self.sentence[tkindex]
+
+        self.current_node.set_token(token, tktype, tkindex)
+
         if(end):
             self.need_to_move = True
         else:
             self.need_to_move = False
 
+    def set_query(self,query):
+        self.sentence = query
 
 
 class OracleTree(Tree):

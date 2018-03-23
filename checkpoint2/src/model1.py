@@ -368,11 +368,17 @@ class ASTNet:
 
 					elif selected_action == 1:
 
+<<<<<<< HEAD
 						copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
 
 						pred_token = np.argmax(copy_probs)
 
 						tree.set_token("copy",pred_token)
+=======
+						current_gen_action_embedding = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
+						# to do
+						copy_tk = np.argmax()
+>>>>>>> 4b59bf70ff9b10fbd8af7225d2a9c7fe517ee757
 
 					prev_action_embedding = self.gentokenLookup(pred_token)
 

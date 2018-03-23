@@ -155,7 +155,7 @@ class BuildingTree(Tree):
         self.current_node = SubTree.root()
         self.current_node.action_type = "apply"
 
-    def pick_and_set_rule(self, rules_probs):
+    def pick_and_get_rule(self, rules_probs):
         # from the rule probabilities, find the best one conditionned to the frontier node type and update the tree
         assert(self.current_node.action_type == "apply")
         rule_choices = self.grammar.rules_from_node()
@@ -164,12 +164,13 @@ class BuildingTree(Tree):
         child_nodes = self.grammar.get_children(pred_rule)
         self.current_node.set_rule(pred_rule, child_nodes)
         self.need_to_move=True
+        return pred_rule
 
     def set_token(self, tktype, tkindex):
         # set a token, and its child if it was not an eos token
         assert(self.current_node.action_type == "gen")
         end = (tkindex==grammar.get_vocab_index("<eos>"))
-        if(tktype="vocab"):
+        if(tktype=="vocab"):
             token = self.grammar.get_vocab(tkindex)
         else:
             assert(tktype=="copy")

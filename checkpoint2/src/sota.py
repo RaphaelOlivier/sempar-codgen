@@ -31,7 +31,6 @@ targetIndexer = defaultdict(lambda: len(targetIndexer))
 # read data set
 # input file format is "word1 word2 ..."
 
-
 def read_dataset(source_file, target_file):
     with open(source_file, "r", encoding='utf-8', errors='ignore') as s_file, open(target_file, "r", encoding='utf-8', errors='ignore') as t_file:
         for source_line, target_line in zip(s_file, t_file):
@@ -71,7 +70,6 @@ eos_target = targetIndexer['</s>']
 # Reading data
 read_dataset(train_source_file, train_target_file)
 train_data = list(read_dataset(train_source_file, train_target_file))
-
 
 sourceIndexer = defaultdict(lambda: unk_source, sourceIndexer)
 

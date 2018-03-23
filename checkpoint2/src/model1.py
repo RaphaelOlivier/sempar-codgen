@@ -10,16 +10,16 @@ from argparse import ArgumentParser
 from collections import Counter, defaultdict
 import tree as Tree
 
-args = namedtuple('args', ['numLayer','embeddingApplySize','embeddingGenSize','embeddedNodeType',
+args = namedtuple('args', ['numLayer','embeddingApplySize','embeddingGenSize','embeddedNodeSize',
 				'hiddenSize','attSize','dropout','learningRate'])(50, 128,128,64,256,32,0,0.001)
 
 class ASTNet:
-	def __init__(self, args, targetIndexer, targetRuleDictionnary, targetGenDictionary, vocabLengthSource, vocabLengthTarget):
+	def __init__(self, args, targetIndexer, vocabLengthSource, vocabLengthActionRule, vocabLengthNodes, vocabLengthTarget):
 
 		self.targetIndexer = targetIndexer
-		self.targetRuleDictionnary = targetRuleDictionnary
-		self.targetGenDictionary = targetGenDictionary
 		self.vocabLengthSource = vocabLengthSource
+		self.vocabLengthActionRule = vocabLengthActionRule
+		self.vocabLengthNodes = vocabLengthNodes
 		self.vocabLengthTarget = vocabLengthTarget
 
 		self.unkTarget = self.targetIndexer["<unk>"]
@@ -47,7 +47,7 @@ class ASTNet:
 		self.actionRuleLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthActionRule, self.embeddingApplySize))
 
 		# for node type lookup
-		self.nodeTypeLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthNodes, self.embeddingNodeType))
+		self.nodeTypeLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthNodes, self.embeddingNodeSize))
 
 		# gor gen type lookup
 		self.gentokenLookup = self.ASTmodel.add_lookup_parameters((self.vocabLengthTarget, self.embeddingGenSize))
@@ -373,7 +373,9 @@ class ASTNet:
 					elif selected_action == 1:
 						pass
 
+						current_gen_action_embedding = self.get_gen_copy_embedding(current_state, context_vector, encoded_states)
 						# to do
+						copy_tk = np.argmax() 
 
 					prev_action_embedding = self.gentokenLookup(pred_token)
 

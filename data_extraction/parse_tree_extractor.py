@@ -17,10 +17,12 @@ def write_to_json_file(path,data):
         json.dump(l,f, encoding='latin1')
 
 def main():
-    flag = "django"
-    # flag = "hs"
-    train_data, dev_data, test_data = deserialize_from_file("../../"+flag+".cleaned.dataset.freq5.par_info.refact.space_only.bin")
+    flag = "hs"
 
+    if flag == "django":
+        train_data, dev_data, test_data = deserialize_from_file("../../django.cleaned.dataset.freq5.par_info.refact.space_only.bin")
+    elif flag == "hs":
+        train_data, dev_data, test_data = deserialize_from_file("../../hs.freq3.pre_suf.unary_closure.bin")
     #uncomment below for Hearthstone data set
     #train_data, dev_data, test_data = deserialize_from_file("hs.freq3.pre_suf.unary_closure.bin")
 

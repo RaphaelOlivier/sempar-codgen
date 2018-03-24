@@ -9,8 +9,6 @@ from argparse import ArgumentParser
 from collections import Counter, defaultdict
 import tree as Tree
 
-args = namedtuple('args', ['numLayer','embeddingSourceSize','embeddingApplySize','embeddingGenSize','embeddingNodeSize',
-				'hiddenSize','attSize','dropout','learningRate'])(1,128,128,128,64,256,32,0,0.001)
 
 class ASTNet:
 	def __init__(self, args, vocabLengthSource, vocabLengthActionRule, vocabLengthNodes, vocabLengthTarget):
@@ -77,8 +75,6 @@ class ASTNet:
 		# parent feeding - hidden states of parent action + embedding of parent action
 		self.inputDecoderSize = self.embeddingApplySize + self.hiddenSize * 2 + self.hiddenSize + self.embeddingApplySize + self.embeddingNodeSize
 		self.decoder = dy.VanillaLSTMBuilder(self.numLayer, self.inputDecoderSize, self.hiddenSize, self.model)
-
-		# adding the selection matrix
 
 
 	def encoder(self, nl):
@@ -306,7 +302,7 @@ class ASTNet:
 
 				losses.append(-dy.log(item_prob))
 
-		return losses
+		return dy.sum_batches(dy.esum(losses))
 
 	def decode_to_prediction(self, encoded_vectors, tree, max_length):
 		# initializing decoder state
@@ -405,4 +401,9 @@ class ASTNet:
 				decoder_actions.append(prev_action_embedding)
 
 		return tree
+
+	def backward_and_update(self,loss):
+		loss.backward()
+		self.trainer.update()
+
 			# check if this is the way to return

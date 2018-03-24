@@ -93,13 +93,14 @@ class SubTree:
             st.tokens_vocab_index = self.tokens_vocab_index[:]
             st.tokens_query_index = self.tokens_query_index[:]
         st.time_step = 0
-        st.children = [c.copy(self) for c in self.children]
+        st.children = [c.copy(st) for c in self.children]
         st.child_to_explore = 0
         return st
 
 
     @staticmethod
     def from_dict(d,parent=None):
+        total_length = 0
         node_type = d["node_type"]
         label = d["label"]
         st = SubTree(parent=parent, node_type=node_type, label=label)
@@ -107,12 +108,14 @@ class SubTree:
         action_type = d["action_type"]
         st.set_action_type(action_type)
         if(action_type=="apply"):
+            total_length = 1
             assert(d["rule"] is not None)
             st.rule = d["rule"]
             children=d["children"]
 
             for child_d in children:
-                child = SubTree.from_dict(child_d,parent=st)
+                child, length = SubTree.from_dict(child_d,parent=st)
+                total_length+=length
 
                 st.children.append(child)
         else:
@@ -121,9 +124,10 @@ class SubTree:
             st.tokens_type=d["tokens_type"]
             st.tokens_vocab_index = d["tokens_vocab_index"]
             st.tokens_query_index = d["tokens_query_index"]
+            total_length = len(st.tokens) - 1
 
         assert(st.is_well_built())
-        return st
+        return st, total_length
 
     def to_dict(self):
         d = dict()
@@ -144,13 +148,15 @@ class SubTree:
         return d
 
 class Tree:
-    def __init__(self, grammar):
+    def __init__(self, grammar, verbose = False):
         # abstract class for trees
         self.grammar = grammar
         self.current_node = None
         self.root_node = None
         self.need_to_move = True
         self.current_token_index = 0
+        self.verbose = verbose
+
 
     def move(self):
         # shift the node to the next one, and specify the action type associated to its frontier node
@@ -189,10 +195,6 @@ class Tree:
         d = self.current_node.toDict()
         return d
 
-    def set_to_root(self):
-        self.current_node = self.root_node
-        self.current_node.time_step = 0
-
 class BuildingTree(Tree):
     # Trees used in prediction
     def __init__(self, grammar, query):
@@ -213,7 +215,8 @@ class BuildingTree(Tree):
         child_nodes = self.grammar.get_children(pred_rule)
         self.current_node.set_rule(pred_rule, child_nodes)
         self.need_to_move=True
-        print("new rule :",self.grammar.get_rule(pred_rule))
+        if(self.verbose):
+            print("new rule :",self.grammar.get_rule(pred_rule))
         return pred_rule
 
     def set_token(self, tktype, tkindex):
@@ -232,7 +235,8 @@ class BuildingTree(Tree):
             tk_query_index = tkindex
 
         self.current_node.set_token(token, tktype, tk_vocab_index,tk_query_index)
-        print("new token :",token)
+        if(self.verbose):
+            print("new token :",token)
         if(end):
             self.need_to_move = True
         else:
@@ -243,11 +247,12 @@ class BuildingTree(Tree):
 
 class OracleTree(Tree):
     # Golden rees used in training
-    def __init__(self, grammar):
+    def __init__(self, grammar, verbose = False):
         # create from an ast
         # print(type(grammar))
-        super(OracleTree,self).__init__(grammar)
+        super(OracleTree,self).__init__(grammar,verbose)
         self.sentence=None
+        self.length = 0
 
     def set_query(self,sentence):
         self.sentence=sentence
@@ -259,15 +264,17 @@ class OracleTree(Tree):
         assert(self.current_node.is_well_built())
         assert(self.current_node.rule is not None)
         self.need_to_move=True
-        print("new rule :",self.grammar.get_rule(self.current_node.rule))
+        if(self.verbose):
+            print("new rule :",self.grammar.get_rule(self.current_node.rule))
         return self.current_node.rule
 
     @staticmethod
     def make_from_dict(grammar, d):
         t = OracleTree(grammar)
-        t.current_node = SubTree.from_dict(d)
+        t.current_node, length = SubTree.from_dict(d)
         t.current_node.time_step=0
         t.root_node = t.current_node
+        t.length = length
         return t
 
     def get_oracle_token(self):
@@ -275,7 +282,8 @@ class OracleTree(Tree):
         # returns the correct token for loss computation in the model
         assert(self.current_node.action_type == "gen")
         tkvocindex,tkcopindex,tkinvocab = self.current_node.get_token_info(self.current_token_index, max_copy_index = len(self.sentence))
-        print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index])
+        if(self.verbose):
+            print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index])
 
         if(tkvocindex==self.grammar.get_vocab_index("'<eos>'")):
             self.need_to_move=True
@@ -291,7 +299,8 @@ class OracleTree(Tree):
         self.sentence=query
 
 
-    def copy(self):
-        tc = OracleTree(self.grammar)
-        tc.current_node = self.current_node.copy()
+    def copy(self, verbose = False):
+        tc = OracleTree(self.grammar, verbose)
+        tc.current_node = self.current_node.copy(None)
+        tc.length = self.length
         return tc

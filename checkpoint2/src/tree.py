@@ -266,6 +266,8 @@ class OracleTree(Tree):
         else:
             self.need_to_move=False
             self.current_token_index+=1
+        if(tkvocindex is None):
+            tkvocindex=self.grammar.get_vocab_index("'<unk>'")
         return tkvocindex,tkcopindex,tkinvocab
 
     def set_query(self,query):

@@ -280,37 +280,26 @@ class ASTNet:
 
 			else:
 				assert(action_type == "gen")
-				foundEmbedding = False
 				item_loss = dy.scalarInput(0)
 				selection_prob = (dy.log_softmax(sel_gen * current_state.output()))
 				goldentoken_vocab, goldentoken_copy, in_vocab = goldenTree.get_oracle_token()
 
 				# words generated from vocabulary
 
-				if(in_vocab):
+				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, wg, bg)  # affine tf over gen vocab
 
-					current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, wg, bg)  # affine tf over gen vocab
-
-					item_loss += -selection_prob[0] + dy.pickneglogsoftmax(current_gen_action_embedding, goldentoken_vocab)
-					#print(len(current_gen_action_embedding.value()),goldentoken_vocab)
-					prev_action_embedding = self.gentokenLookup[goldentoken_vocab]
-					decoder_actions.append(prev_action_embedding)
-					found_embedding=True
+				item_loss += -selection_prob[0] + dy.pickneglogsoftmax(current_gen_action_embedding, goldentoken_vocab)
+				#print(len(current_gen_action_embedding.value()),goldentoken_vocab)
+				prev_action_embedding = self.gentokenLookup[goldentoken_vocab]
+				decoder_actions.append(prev_action_embedding)
 
 				# words copied from the sentence
-
 				if(goldentoken_copy is not None):
 
 					copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2)
 					# print(len(copy_probs.value()),goldentoken_copy)
 					item_loss += -selection_prob[1] + dy.pickneglogsoftmax(copy_probs, goldentoken_copy)
-					found_embedding = True
 
-					if not in_vocab: #goldentoken_vocab=unk
-						prev_action_embedding = self.gentokenLookup[goldentoken_vocab]
-						decoder_actions.append(prev_action_embedding)
-
-				assert(found_embedding)
 				losses.append(item_loss)
 
 		return losses

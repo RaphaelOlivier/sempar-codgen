@@ -16,12 +16,14 @@ class VocabIndexer:
         self.building = True
         self.vocab = {"<unk>":0,"<eos>":1}
         self.length = 2
+        self.id_to_word = None
 
     def build(self):
         self.building=True
 
     def isBuilt(self):
         self.building=False
+        self.id_to_word = {v:k for k,v in self.vocab.items()}
 
     def __getitem__(self,w):
         if w in self.vocab.keys():
@@ -33,6 +35,10 @@ class VocabIndexer:
                 return self.length-1
             else:
                 return self.vocab["<unk>"]
+
+    def word(self,index):
+        assert(not self.building)
+        return self.id_to_word[index]
 
 # read data set
 # input file format is "word1 word2 ..."
@@ -66,7 +72,7 @@ class SourceDataset:
         with open(source_file, "r", encoding='utf-8', errors='ignore') as s_file:
             for source_line in s_file:
                 sent = source_line.strip().split(" ") + ["<eos>"]
-                sent_int = [self.indexer[x] for x in sent] 
+                sent_int = [self.indexer[x] for x in sent]
                 data_str.append(sent)
                 data_index.append(sent_int)
         return data_str, data_index

@@ -9,6 +9,7 @@ def write_to_json_file(path,data):
     for i in range(len(data.examples)):
         t = data.examples[i].parse_tree
         q = data.examples[i].query
+        print(i,q)
         d = t.to_dict(q,g,v)
         l.append(d)
     print(l[0])

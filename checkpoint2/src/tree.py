@@ -1,3 +1,5 @@
+import numpy as np
+
 class SubTree:
     def __init__(self, node_type,label, parent):
         self.node_type = node_type
@@ -24,7 +26,7 @@ class SubTree:
             self.child_to_explore += 1
             child.time_step = old_time+1
             #print(child.node_type,child.parent,child.time_step, child.rule,child.tokens)
-            assert(child.is_well_built())
+            # assert(child.is_well_built())
             return child
         else:
             self.child_to_explore = 0
@@ -37,8 +39,9 @@ class SubTree:
     @staticmethod
     def root(grammar):
         # create a subtree with only the root node
-        st = SubTree(node_type=grammar.get_node_index("root"), label=None, parent=None)
+        st = SubTree(node_type=grammar.get_node_index("'root'"), label=None, parent=None)
         st.time_step = 0
+        st.children=[]
         return st
 
     def is_well_built(self):
@@ -46,23 +49,27 @@ class SubTree:
         return self.children != None and ((self.action_type == "apply" and self.rule != None) or (self.action_type == "gen" and len(self.tokens)>0))
 
 
-    def get_token_info(self,i):
+    def get_token_info(self,i, max_copy_index):
         # print(i,len(self.tokens))
         assert(i<len(self.tokens))
         token = self.tokens[i]
         tktype = self.tokens_type[i]
         tkvocindex = self.tokens_vocab_index[i]
         tkcopindex = self.tokens_query_index[i]
+        if(tkcopindex is not None and tkcopindex>=max_copy_index):
+            tkcopindex=None
         return tkvocindex,tkcopindex,tktype=="vocab"
 
     def set_rule(self, rule, child_nodes):
         # set a rule and children
         self.rule = rule
-        self.children = []
-        for node_type, label in child_nodes:
-            self.children = SubTree(parent=self, node_type=node_type, label=label)
+        for node_type, label, action_type in child_nodes:
+            st = SubTree(parent=self, node_type=node_type, label=label)
+            st.set_action_type(action_type)
+            st.children = []
+            self.children.append(st)
 
-    def set_token(self, token, tktype, tkindex):
+    def set_token(self, token, tktype, tkvocabindex,tkqueryindex):
         self.tokens.append(token)
         self.tokens_type.append(tktype)
         self.tokens_vocab_index.append(tkvocabindex)
@@ -73,7 +80,8 @@ class SubTree:
         if(self.action_type=="gen"):
             self.tokens=list()
             self.tokens_type=list()
-            self.tokens_index=list()
+            self.tokens_vocab_index=list()
+            self.tokens_query_index=list()
 
 
     @staticmethod
@@ -133,17 +141,19 @@ class Tree:
     def move(self):
         # shift the node to the next one, and specify the action type associated to its frontier node
         # print(self.need_to_move)
-        print("old node :",self.current_node,self.current_node.node_type,self.current_node.time_step,self.current_node.parent, self.current_node.children, self.current_node.tokens)
-
+        #print("old node :",self.current_node,self.current_node.node_type,self.current_node.time_step,self.current_node.parent, self.current_node.children, self.current_node.tokens)
+        assert(self.current_node.is_well_built())
+        # print(self.current_node.action_type)
         if(self.need_to_move):
-            self.current_node = self.current_node.next()
-            if self.current_node is None:
-                print("End of tree")
-                return False
-            assert(self.current_node.action_type==self.grammar.action_type(self.current_node.node_type))
-            assert(self.current_node.is_well_built())
-        print("new node :",self.current_node,self.current_node.node_type,self.current_node.time_step,self.current_node.parent, self.current_node.children, self.current_node.tokens)
+            # print("move from 1")
+            st = self.current_node.next()
 
+            if st is None:
+                # print("End of tree")
+                return False
+            self.current_node = st
+            assert(self.current_node.action_type==self.grammar.action_type(self.current_node.node_type))
+        # print("new node :",self.current_node,self.current_node.node_type,self.current_node.time_step,self.current_node.parent, self.current_node.children, self.current_node.tokens)
         return True
 
     def get_node_type(self):
@@ -171,18 +181,20 @@ class Tree:
 
 class BuildingTree(Tree):
     # Trees used in prediction
-    def __init__(self, grammar):
+    def __init__(self, grammar, query):
         # create a tree with only a root node
-        super.__init__(self, grammar)
+        super(BuildingTree,self).__init__(grammar)
         self.current_node = SubTree.root(grammar)
-        self.root_node = current_node
+        self.root_node = self.current_node
         self.current_node.action_type = "apply"
+        self.sentence = query
 
     def pick_and_get_rule(self, rules_probs):
         # from the rule probabilities, find the best one conditionned to the frontier node type and update the tree
         assert(self.current_node.action_type == "apply")
-        rule_choices = self.grammar.rules_from_node()
-        selected_probs = rule_probs[rule_choices]
+        rule_choices = self.grammar.rules_from_node(self.current_node.node_type)
+        # print(rule_choices,type(rule_choices), rules_probs, type(rules_probs))
+        selected_probs = np.array(rules_probs)[rule_choices]
         pred_rule = rule_choices[np.argmax(selected_probs)]
         child_nodes = self.grammar.get_children(pred_rule)
         self.current_node.set_rule(pred_rule, child_nodes)
@@ -190,16 +202,21 @@ class BuildingTree(Tree):
         return pred_rule
 
     def set_token(self, tktype, tkindex):
+        # print(tkindex)
         # set a token, and its child if it was not an eos token
         assert(self.current_node.action_type == "gen")
         end = (tkindex==self.grammar.get_vocab_index("'<eos>'"))
         if(tktype=="vocab"):
             token = self.grammar.get_vocab(tkindex)
+            tk_vocab_index = tkindex
+            tk_query_index = None
         else:
             assert(tktype=="copy")
             token = self.sentence[tkindex]
+            tk_vocab_index = None
+            tk_query_index = tkindex
 
-        self.current_node.set_token(token, tktype, tkindex)
+        self.current_node.set_token(token, tktype, tk_vocab_index,tk_query_index)
 
         if(end):
             self.need_to_move = True
@@ -241,7 +258,7 @@ class OracleTree(Tree):
         #print(self.current_node)
         # returns the correct token for loss computation in the model
         assert(self.current_node.action_type == "gen")
-        tkvocindex,tkcopindex,tkinvocab = self.current_node.get_token_info(self.current_token_index)
+        tkvocindex,tkcopindex,tkinvocab = self.current_node.get_token_info(self.current_token_index, max_copy_index = len(self.sentence))
         #print(len(self.current_node.tokens),"tokens, at number",self.current_token_index,":",self.current_node.tokens[self.current_token_index])
         if(tkvocindex==self.grammar.get_vocab_index("'<eos>'")):
             self.need_to_move=True
@@ -250,3 +267,6 @@ class OracleTree(Tree):
             self.need_to_move=False
             self.current_token_index+=1
         return tkvocindex,tkcopindex,tkinvocab
+
+    def set_query(self,query):
+        self.sentence=query

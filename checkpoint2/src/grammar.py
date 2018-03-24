@@ -1,26 +1,4 @@
 import numpy as np
-class Node():
-	def __init__(self, node_type, node_label, node_idx, parent):
-		self.node_type = node_type
-		self.node_label = node_label
-		self.node_type_idx = node_idx
-		self.parent = parent
-
-	def get_node_type(self):
-		return self.node_type
-
-	def get_node_label(self):
-		return self.node_label
-
-	def get_node_type_index(self):
-		return self.node_type_idx
-
-	def get_parent(self):
-		return self.parent
-
-	def print_node(self):
-		#print(self.node_type)
-		print(self.node_type + " " + str(self.node_label) + " " + self.node_type_idx + " " + self.parent)
 
 class Indexer():
 
@@ -32,6 +10,9 @@ class Indexer():
 		self.frontier_nodes = Indexer.index_reader("../../data/indexer/frontier_nodes_"+self.mode+".tsv", True, False)
 		self.annot_vocab = Indexer.index_reader("../../data/indexer/annot_vocab_"+self.mode+".tsv", False, False)
 		self.terminal_vocab = Indexer.index_reader("../../data/indexer/terminal_vocab_"+self.mode+".tsv", False, False)
+
+		self.rules_by_node = self.rules_index_by_node_type_index()
+		self.rules_to_children = self.extract_children_from_rules()
 
 		#self.rules_index = {v:k for k,v in self.rules.items()}
 		self.node_types_index = {v:k for k,v in self.node_types.items()}
@@ -55,8 +36,45 @@ class Indexer():
 					indexer[value] = index
 		return indexer
 
+	def rules_index_by_node_type_index(self):
+		rules_by_node_type = [[] for n in self.node_types]
+		for i in range(self.rule_length):
+			parent, raw_children = self.rules[i].split(" -> ")
+			parent = self.appostrophize(parent)
+			# print(parent)
+			i_node = self.get_node_index(parent)
+			rules_by_node_type[i_node].append(i)
+		return rules_by_node_type
+
+	def extract_children_from_rules(self):
+		rules_to_children = [[] for r in self.rules]
+		for i in range(self.rule_length):
+			parent, raw_children = self.rules[i].split(" -> ")
+
+			raw_children = raw_children.strip()
+			children_list = raw_children.split(",")
+
+			for child in children_list:
+				split_child = child.split("{")
+				node_type = split_child[0].strip()
+				node_type = self.appostrophize(node_type)
+				node_label = None
+				if len(split_child) == 2:
+					node_label = split_child[1].replace("}", "").strip()
+				node_idx = self.get_node_index(node_type)
+				child_node = (node_idx,node_label)
+				rules_to_children[i].append(child_node)
+		return rules_to_children
+
 	def get_node_index(self, token):
 		return self.node_types[token]
+
+	def appostrophize(self,word):
+		if(word[-1]!="'"):
+			word = word + "'"
+		if(word[0]!="'"):
+			word = "'" + word
+		return word
 
 	def get_vocab_index(self, token):
 		# print(self.terminal_vocab)
@@ -85,32 +103,15 @@ class Indexer():
 	def rule_length(self):
 		return len(self.rules)
 
-	def rules_from_node(self):
-		rule_index_list = self.rules.values()
-		return np.array(list(rule_index_list))
+	def rules_from_node(self, node_type):
+		rule_index_list = self.rules_by_node[node_type]
+		return np.array(rule_index_list)
 
 	def get_children(self, rule_index):
 		#print("---- " + rule_index + " ----")
-		parent, raw_children = self.rules[rule_index].split(" -> ")
-		parent = parent.strip()
-		raw_children = raw_children.strip()
-		children_list = raw_children.split(",")
-		#print(parent)
-		#print(raw_children)
-		#print(children_list)
-		children = []
-		for child in children_list:
-			split_child = child.split("{")
-			node_type = split_child[0].strip()
-			node_label = None
-			if len(split_child) == 2:
-				node_label = split_child[1].replace("}", "").strip()
-			node_idx = self.get_node_index(node_type)
-			child_node = Node(node_type, node_label, node_idx, parent)
-			children.append(child_node)
-			child_node.print_node()
+		children = self.rules_to_children[rule_index]
+		return [(t,l,self.action_type(t)) for (t,l) in children]
 
-		return children
 if __name__ == "__main__":
 	indexer = Indexer("hs")
 	indexer.get_children("44")

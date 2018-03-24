@@ -83,6 +83,20 @@ class SubTree:
             self.tokens_vocab_index=list()
             self.tokens_query_index=list()
 
+    def copy(self, parent):
+        st = SubTree(self.node_type,self.label,parent)
+        st.action_type = self.action_type
+        st.rule = self.rule
+        if(st.action_type == "gen"):
+            st.tokens= self.tokens[:]
+            st.tokens_type = self.tokens_type[:]
+            st.tokens_vocab_index = self.tokens_vocab_index[:]
+            st.tokens_query_index = self.tokens_query_index[:]
+        st.time_step = 0
+        st.children = [c.copy(self) for c in self.children]
+        st.child_to_explore = 0
+        return st
+
 
     @staticmethod
     def from_dict(d,parent=None):
@@ -199,6 +213,7 @@ class BuildingTree(Tree):
         child_nodes = self.grammar.get_children(pred_rule)
         self.current_node.set_rule(pred_rule, child_nodes)
         self.need_to_move=True
+        print("new rule :",self.grammar.get_rule(pred_rule))
         return pred_rule
 
     def set_token(self, tktype, tkindex):
@@ -217,7 +232,7 @@ class BuildingTree(Tree):
             tk_query_index = tkindex
 
         self.current_node.set_token(token, tktype, tk_vocab_index,tk_query_index)
-
+        print("new token :",token)
         if(end):
             self.need_to_move = True
         else:
@@ -244,6 +259,7 @@ class OracleTree(Tree):
         assert(self.current_node.is_well_built())
         assert(self.current_node.rule is not None)
         self.need_to_move=True
+        print("new rule :",self.grammar.get_rule(self.current_node.rule))
         return self.current_node.rule
 
     @staticmethod
@@ -259,7 +275,8 @@ class OracleTree(Tree):
         # returns the correct token for loss computation in the model
         assert(self.current_node.action_type == "gen")
         tkvocindex,tkcopindex,tkinvocab = self.current_node.get_token_info(self.current_token_index, max_copy_index = len(self.sentence))
-        #print(len(self.current_node.tokens),"tokens, at number",self.current_token_index,":",self.current_node.tokens[self.current_token_index])
+        print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index])
+
         if(tkvocindex==self.grammar.get_vocab_index("'<eos>'")):
             self.need_to_move=True
             self.current_token_index=0
@@ -272,3 +289,9 @@ class OracleTree(Tree):
 
     def set_query(self,query):
         self.sentence=query
+
+
+    def copy(self):
+        tc = OracleTree(self.grammar)
+        tc.current_node = self.current_node.copy()
+        return tc

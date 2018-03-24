@@ -15,6 +15,8 @@ args = namedtuple('args', ['numLayer','embeddingSourceSize','embeddingApplySize'
 class ASTNet:
 	def __init__(self, args, vocabLengthSource, vocabLengthActionRule, vocabLengthNodes, vocabLengthTarget):
 
+		self.flag_copy = False
+
 		self.vocabLengthSource = vocabLengthSource
 		self.vocabLengthActionRule = vocabLengthActionRule
 		self.vocabLengthNodes = vocabLengthNodes
@@ -280,27 +282,29 @@ class ASTNet:
 
 			else:
 				assert(action_type == "gen")
-				item_loss = dy.scalarInput(0)
-				selection_prob = (dy.log_softmax(sel_gen * current_state.output()))
+				item_prob = dy.scalarInput(0)
+				selection_prob = (dy.softmax(sel_gen * current_state.output()))
 				goldentoken_vocab, goldentoken_copy, in_vocab = goldenTree.get_oracle_token()
 
 				# words generated from vocabulary
 
 				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, wg, bg)  # affine tf over gen vocab
-
-				item_loss += -selection_prob[0] + dy.pickneglogsoftmax(current_gen_action_embedding, goldentoken_vocab)
+				if(self.flag_copy):
+					item_prob += selection_prob[0] * dy.softmax(current_gen_action_embedding)[goldentoken_vocab]
+				else:
+					item_prob += dy.softmax(current_gen_action_embedding)[goldentoken_vocab]
 				#print(len(current_gen_action_embedding.value()),goldentoken_vocab)
 				prev_action_embedding = self.gentokenLookup[goldentoken_vocab]
 				decoder_actions.append(prev_action_embedding)
 
 				# words copied from the sentence
-				if(goldentoken_copy is not None):
+				if(goldentoken_copy is not None and self.flag_copy):
 
 					copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2)
 					# print(len(copy_probs.value()),goldentoken_copy)
-					item_loss += -selection_prob[1] + dy.pickneglogsoftmax(copy_probs, goldentoken_copy)
+					item_prob += selection_prob[1] * dy.softmax(copy_probs)[goldentoken_copy]
 
-				losses.append(item_loss)
+				losses.append(-dy.log(item_prob))
 
 		return losses
 
@@ -376,20 +380,26 @@ class ASTNet:
 				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, wg, bg)  # affine tf over gen vocab
 				rule_probs_vocab = dy.log_softmax(current_gen_action_embedding).value() # check if transpose needed
 				pred_vocab = np.argmax(rule_probs_vocab)
-				pred_vocab_prob =rule_probs_vocab[pred_vocab] + selection_prob[0]
-
-				copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2).value()
-				#print(len(copy_probs))
-				pred_copy = np.argmax(copy_probs)
-				pred_copy_prob = copy_probs[pred_copy] + selection_prob[1]
-
-				# FOR NOW NOT AS IN THE PAPER !!
-				if(pred_vocab_prob > pred_copy):
+				if(self.flag_copy):
+					pred_vocab_prob =rule_probs_vocab[pred_vocab] + selection_prob[0]
+				else:
+					pred_vocab_prob =rule_probs_vocab[pred_vocab]
 					pred_token = pred_vocab
 					tree.set_token("vocab",pred_token)
-				else:
-					pred_token = pred_copy
-					tree.set_token("copy", pred_token)
+
+				if(self.flag_copy):
+					copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2).value()
+					#print(len(copy_probs))
+					pred_copy = np.argmax(copy_probs)
+					pred_copy_prob = copy_probs[pred_copy] + selection_prob[1]
+
+					# FOR NOW NOT AS IN THE PAPER !!
+					if(pred_vocab_prob > pred_copy):
+						pred_token = pred_vocab
+						tree.set_token("vocab",pred_token)
+					else:
+						pred_token = pred_copy
+						tree.set_token("copy", pred_token)
 
 				prev_action_embedding = self.gentokenLookup[pred_token]
 				decoder_actions.append(prev_action_embedding)

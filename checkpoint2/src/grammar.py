@@ -83,6 +83,9 @@ class Indexer():
 	def get_vocab(self, token_index):
 		return self.terminal_vocab_index[token_index]
 
+	def get_rule(self, index):
+		return self.rules[index]
+
 	def action_type(self, node_type):
 		# print(self.node_types_index)
 		# print(self.node_types_index[node_type])

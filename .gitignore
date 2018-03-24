@@ -1,5 +1,6 @@
 *__pycache__*
 */exp/*
 *DS_Store*
-*ipynb*
+*ipynb_checkpoints*
 *.json
+*.model

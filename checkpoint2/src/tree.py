@@ -159,23 +159,24 @@ class Tree:
         self.need_to_move = True
         self.current_token_index = 0
         self.verbose = verbose
+        self.current_time_step=0
+
 
     def go_to_root(self):
         while(self.current_node.parent is not None):
             self.current_node = self.current_node.parent
+        self.current_time_step=0
 
 
 
     def move(self):
+
         # shift the node to the next one, and specify the action type associated to its frontier node
         # print(self.need_to_move)
         #print("old node :",self.current_node,self.current_node.node_type,self.current_node.,self.current_node.parent, self.current_node.children, self.current_node.tokens)
+        self.current_node.time_step = self.current_time_step
         assert(self.current_node.is_well_built())
-        if(self.current_node.action_type=="apply"):
-            for st in self.current_node.children:
-                st.time_step = self.current_node.time_step+1
-        else:
-            self.current_node.time_step+=1
+
         # print(self.current_node.action_type)
         if(self.need_to_move):
             # print("move from 1")
@@ -187,6 +188,8 @@ class Tree:
             self.current_node = st
             assert(self.current_node.action_type==self.grammar.action_type(self.current_node.node_type))
         # print("new node :",self.current_node,self.current_node.node_type,self.current_node.time_step,self.current_node.parent, self.current_node.children, self.current_node.tokens)
+
+        self.current_time_step +=1
         return True
 
     def get_node_type(self):
@@ -198,7 +201,10 @@ class Tree:
 
     def get_parent_time(self):
         # value needed by the model
-        return self.current_node.time_step - 1
+        if(self.current_node.action_type=="gen" and self.current_token_index > 0):
+            return self.current_node.time_step
+        else:
+            return self.current_node.parent.time_step
 
     def has_ended(self):
         # to know if decoding is over (current node is None)
@@ -259,8 +265,10 @@ class BuildingTree(Tree):
             print("new token :",token)
         if(end):
             self.need_to_move = True
+            self.current_token_index=0
         else:
             self.need_to_move = False
+            self.current_token_index+=1
 
 
 

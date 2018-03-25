@@ -154,12 +154,12 @@ class ASTNet:
 		self.model.populate(path)
 
 	def get_learning_rate(self):
-		print ("learning rate" + str(self.learning_rate))
-		return self.learning_rate
+		print ("learning rate" + str(self.learningRate))
+		return self.learningRate
 
 	def reduce_learning_rate(self, factor):
-		self.learning_rate = self.learning_rate/factor
-		self.trainer.learning_rate = self.trainer.learning_rate/factor
+		self.learningRate = self.learningRate/factor
+		self.trainer.learningRate = self.trainer.learningRate/factor
 
 	def parent_feed(self, parent_action_hidden_state, parent_action_embedding ):
 
@@ -262,6 +262,7 @@ class ASTNet:
 
 			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 			parent_time =  goldenTree.get_parent_time()
+			# print(parent_time)
 			frontier_node_type_embedding = self.nodeTypeLookup[goldenTree.get_node_type()]
 			parent_action = self.parent_feed(decoder_states[parent_time].output(), decoder_actions[parent_time])
 			current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
@@ -352,6 +353,7 @@ class ASTNet:
 
 			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 			parent_time =  tree.get_parent_time()
+			# pprintrint(parent_time)
 			prev_action_embedding = dy.vecInput(self.embeddingApplySize)
 			node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
 

@@ -89,7 +89,7 @@ def train(log_writer):
     dev_words, dev_loss = 0, 0.0
     dev_loss = 0
     for i in range(0, len(target_dev_dataset)):
-        input_s, real_s, goldenTree = sourceDataset.dev_index[i], sourceDataset.dev_str[i], target_dev_dataset[i].copy()
+        input_s, real_s, goldenTree = sourceDataset.dev_index[i], sourceDataset.dev_str[i], target_dev_dataset[i].copy(verbose=False)
 
         goldenTree.set_query(real_s)
 
@@ -108,7 +108,7 @@ def train(log_writer):
 
 # Training
 log_writer = open("../../data/exp/log/"+str(ITERATION)+"_iter_"+mode+".log", 'w')
-
+net.load("../../data/exp/models/hs_4lowest_iter_AdamTrainer.model")
 print("iteration: " + str(ITERATION))
 lowest_dev_loss = float("inf")
 successive_decreasing_counter = 0
@@ -139,8 +139,8 @@ for ITER in range(ITERATION):
 
 log_writer.close()
 
-#net.save("../exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
-net.load("../../data/exp/models/"+mode+"_2_iter_AdamTrainer.model")
+net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
+#net.load("../../data/exp/models/"+mode+"_9lowest_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")
@@ -150,7 +150,7 @@ test_loss = 0
 for i in range(0, len(target_test_dataset)):
     input_s, real_s = sourceDataset.test_index[i], sourceDataset.test_str[i]
     # print(" ".join(real_s))
-    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=False)
+    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=True)
 
 
     generated_tree = net.forward_prop(input_s, generated_tree, mode="predict")

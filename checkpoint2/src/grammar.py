@@ -69,6 +69,9 @@ class Indexer():
 	def get_node_index(self, token):
 		return self.node_types[token]
 
+	def get_node_type(self, index):
+		return self.node_types_index[index]
+
 	def appostrophize(self,word):
 		if(word[-1]!="'"):
 			word = word + "'"

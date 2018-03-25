@@ -150,6 +150,9 @@ class ASTNet:
 	def save(self, path):
 		self.model.save(path)
 
+	def load(self, path):
+		self.model.populate(path)
+
 	def get_learning_rate(self):
 		print ("learning rate" + str(self.learning_rate))
 		return self.learning_rate

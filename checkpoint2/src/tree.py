@@ -15,16 +15,16 @@ class SubTree:
         self.children = None
         self.child_to_explore = 0
 
-    def next(self, old_time=None):
+    def next(self):
         # recursive function to return the correct next node
         # assert(self.is_built())
         # print(len(self.children),self.child_to_explore)
-        if(old_time is None):
-            old_time = self.time_step
+        # if(old_time is None):
+        #     old_time = self.time_step
         if(self.child_to_explore < len(self.children)):
             child = self.children[self.child_to_explore]
             self.child_to_explore += 1
-            child.time_step = old_time+1
+            #child.time_step = old_time+1
             #print(child.node_type,child.parent,child.time_step, child.rule,child.tokens)
             # assert(child.is_well_built())
             return child
@@ -34,7 +34,7 @@ class SubTree:
             if self.parent == None:
                 return None
             else:
-                return self.parent.next(old_time)
+                return self.parent.next()
 
     @staticmethod
     def root(grammar):
@@ -92,7 +92,7 @@ class SubTree:
             st.tokens_type = self.tokens_type[:]
             st.tokens_vocab_index = self.tokens_vocab_index[:]
             st.tokens_query_index = self.tokens_query_index[:]
-        st.time_step = 0
+        st.time_step = None
         st.children = [c.copy(st) for c in self.children]
         st.child_to_explore = 0
         return st
@@ -136,15 +136,17 @@ class SubTree:
         d["action_type"]=self.action_type
         if(self.action_type=="apply"):
             d["rule"]=self.rule
+            # print(type(d["rule"]))
         else:
             assert(self.action_type=="gen")
-            d["tokens_index"]=self.tokens_index
+            d["tokens_vocab_index"]=self.tokens_vocab_index
+            d["tokens_query_index"]=self.tokens_query_index
             d["tokens_type"]=self.tokens_type
             d["tokens"]=self.tokens
+            #assert(self.tokens[0] is not None)
         d["children"]=[]
         for child in self.children:
-            d["children"].append(child.toDict())
-
+            d["children"].append(child.to_dict())
         return d
 
 class Tree:
@@ -157,12 +159,22 @@ class Tree:
         self.current_token_index = 0
         self.verbose = verbose
 
+    def go_to_root(self):
+        while(self.current_node.parent is not None):
+            self.current_node = self.current_node.parent
+
+
 
     def move(self):
         # shift the node to the next one, and specify the action type associated to its frontier node
         # print(self.need_to_move)
-        #print("old node :",self.current_node,self.current_node.node_type,self.current_node.time_step,self.current_node.parent, self.current_node.children, self.current_node.tokens)
+        #print("old node :",self.current_node,self.current_node.node_type,self.current_node.,self.current_node.parent, self.current_node.children, self.current_node.tokens)
         assert(self.current_node.is_well_built())
+        if(self.current_node.action_type=="apply"):
+            for st in self.current_node.children:
+                st.time_step = self.current_node.time_step+1
+        else:
+            self.current_node.time_step+=1
         # print(self.current_node.action_type)
         if(self.need_to_move):
             # print("move from 1")
@@ -185,21 +197,21 @@ class Tree:
 
     def get_parent_time(self):
         # value needed by the model
-        return self.current_node.parent.time_step
+        return self.current_node.time_step - 1
 
     def has_ended(self):
         # to know if decoding is over (current node is None)
         return self.current_node == None
 
     def to_dict(self, grammar):
-        d = self.current_node.toDict()
+        d = self.current_node.to_dict()
         return d
 
 class BuildingTree(Tree):
     # Trees used in prediction
-    def __init__(self, grammar, query):
+    def __init__(self, grammar, query, verbose=False):
         # create a tree with only a root node
-        super(BuildingTree,self).__init__(grammar)
+        super(BuildingTree,self).__init__(grammar,verbose)
         self.current_node = SubTree.root(grammar)
         self.root_node = self.current_node
         self.current_node.action_type = "apply"
@@ -211,7 +223,7 @@ class BuildingTree(Tree):
         rule_choices = self.grammar.rules_from_node(self.current_node.node_type)
         # print(rule_choices,type(rule_choices), rules_probs, type(rules_probs))
         selected_probs = np.array(rules_probs)[rule_choices]
-        pred_rule = rule_choices[np.argmax(selected_probs)]
+        pred_rule = rule_choices[np.argmax(selected_probs)].item()
         child_nodes = self.grammar.get_children(pred_rule)
         self.current_node.set_rule(pred_rule, child_nodes)
         self.need_to_move=True
@@ -222,6 +234,7 @@ class BuildingTree(Tree):
     def set_token(self, tktype, tkindex):
         # print(tkindex)
         # set a token, and its child if it was not an eos token
+        tkindex = tkindex.item()
         assert(self.current_node.action_type == "gen")
         end = (tkindex==self.grammar.get_vocab_index("'<eos>'"))
         if(tktype=="vocab"):
@@ -233,7 +246,6 @@ class BuildingTree(Tree):
             token = self.sentence[tkindex]
             tk_vocab_index = None
             tk_query_index = tkindex
-
         self.current_node.set_token(token, tktype, tk_vocab_index,tk_query_index)
         if(self.verbose):
             print("new token :",token)
@@ -302,5 +314,6 @@ class OracleTree(Tree):
     def copy(self, verbose = False):
         tc = OracleTree(self.grammar, verbose)
         tc.current_node = self.current_node.copy(None)
+        tc.current_node.time_step =0
         tc.length = self.length
         return tc

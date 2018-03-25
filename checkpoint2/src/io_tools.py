@@ -16,5 +16,5 @@ def tree_to_json_dataset(path,grammar,tree_list):
     json_list=[]
     with open(path,'w') as f:
         for tree in tree_list:
-            json_list.append(tree.to_dict())
+            json_list.append(tree.to_dict(grammar))
         json.dump(json_list,f)

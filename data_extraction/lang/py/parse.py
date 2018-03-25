@@ -16,7 +16,7 @@ def python_ast_to_parse_tree(node):
 
     node_type = type(node)
     tree = ASTNode(node_type)
-
+    #print(node_type)
     # it's a leaf AST node, e.g., ADD, Break, etc.
     if len(node._fields) == 0:
         return tree
@@ -75,13 +75,14 @@ def python_ast_to_parse_tree(node):
 
 
 def parse_tree_to_python_ast(tree):
+
     node_type = tree.type
     node_label = tree.label
-
+    # print(type(node_type))
     # remove root
     if node_type == 'root':
         return parse_tree_to_python_ast(tree.children[0])
-
+    print(node_type,type(node_type))
     ast_node = node_type()
     node_type_name = typename(node_type)
 

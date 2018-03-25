@@ -11,7 +11,7 @@ import target_dataset
 
 from argparse import ArgumentParser
 from collections import Counter, defaultdict, namedtuple
-
+import tree
 
 parser = ArgumentParser(description='Checkpoint2 Code Generator')
 parser.add_argument('--data', type=str, default='hs',
@@ -95,7 +95,7 @@ def train(log_writer):
 
         dev_words += goldenTree.length
 
-        loss = net.forward_prop(input_s, goldenTree, mode = "predict")
+        loss = net.forward_prop(input_s, goldenTree, mode = "validate")
         dev_loss+=loss.value()
 
     dev_loss_per_word = dev_loss/dev_words
@@ -107,7 +107,7 @@ def train(log_writer):
 
 
 # Training
-log_writer = open("../exp/log/"+str(ITERATION)+"_iter_"+mode+".log", 'w')
+log_writer = open("../../data/exp/log/"+str(ITERATION)+"_iter_"+mode+".log", 'w')
 
 print("iteration: " + str(ITERATION))
 lowest_dev_loss = float("inf")
@@ -121,7 +121,7 @@ for ITER in range(ITERATION):
         print("----------------------------------")
         print("Saving lowest dev perplexity: " +
               str(lowest_dev_perplexity) + " at iteration: " + str(ITER) + "...")
-        net.save("../exp/models/"+mode+"_"+str(ITER) +
+        net.save("../../data/exp/models/"+mode+"_"+str(ITER) +
                    "lowest_iter_AdamTrainer.model")
         print("----------------------------------")
     if lowest_dev_loss > dev_loss_per_word:
@@ -139,25 +139,26 @@ for ITER in range(ITERATION):
 
 log_writer.close()
 
-net.save("../exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
-
+#net.save("../exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
+net.load("../../data/exp/models/"+mode+"_2_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")
 target_test_dataset = targetDataset.target_test_dataset
 test_words, test_loss = 0, 0.0
 test_loss = 0
-for i in range(0, len(target_dev_dataset)):
+for i in range(0, len(target_test_dataset)):
     input_s, real_s = sourceDataset.test_index[i], sourceDataset.test_str[i]
+    # print(" ".join(real_s))
+    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=False)
 
-    tree = tree.BuildingTree(indexer, real_s)
 
-
-    generated_tree = net.forward_prop(input_sent, tree, mode="predict")
-
+    generated_tree = net.forward_prop(input_s, generated_tree, mode="predict")
+    generated_tree.go_to_root()
     trees.append(generated_tree)
 
 print("Writing result...")
-path = "../exp/results/test_"+mode+"_" + str(ITERATION)+"_iter.result"
+
+path = "../../data/exp/results/test_"+mode+"_" + str(ITERATION)+"_iter.json"
 suffix = str(ITERATION)+"_iter"
 targetDataset.export(trees,suffix)

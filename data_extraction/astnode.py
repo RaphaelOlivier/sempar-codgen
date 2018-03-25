@@ -264,6 +264,7 @@ class ASTNode(object):
         # print(vocab)
         d = dict()
         node_type_id = grammar.get_node_type_id(self)
+        # print(type(self.type))
         d["node_type"]= node_type_id
         d["label"]=self.label
 
@@ -324,6 +325,27 @@ class ASTNode(object):
             d["tokens_vocab_index"]=tokens_vocab_index
 
         return d
+    @staticmethod
+    def from_dict(d,node_types,vocab):
+        node_type = node_types[d["node_type"]]
+        # print(type(node_type))
+        label = d["label"]
+        # print(type(label))
+        value = None
+        children = []
+        if(d["action_type"]=="apply"):
+            children = [ASTNode.from_dict(c,node_types,vocab) for c in d["children"]]
+
+        else:
+            tokens = d["tokens"][:-1]
+            if(len(tokens)==1):
+                value = tokens[0]
+                if isinstance(value,unicode):
+                    value = value.encode('utf-8')
+            else:
+                #print(tokens)
+                value = " ".join(tokens)
+        return ASTNode(node_type,label,value,children)
 
 
 class DecodeTree(ASTNode):
@@ -345,6 +367,7 @@ class DecodeTree(ASTNode):
             new_tree.add_child(child.copy())
 
         return new_tree
+
 
 
 class Rule(ASTNode):

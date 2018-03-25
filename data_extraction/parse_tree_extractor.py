@@ -55,7 +55,7 @@ def write_to_json_file(path,data):
     with open(path,'w') as f:
         json.dump(l,f, encoding='latin1')
 
-def write_to_code_file(data, path_to_load, path_to_export, path_raw_code):
+def write_to_code_file(mode, data, path_to_load, path_to_export, path_raw_code):
     g = data.grammar
     nt = {v:reverse_typename(k) for k,v in g.node_type_to_id.items()}
 
@@ -75,7 +75,8 @@ def write_to_code_file(data, path_to_load, path_to_export, path_raw_code):
         ast_tree = parse.decode_tree_to_python_ast(t)
         code = astor.to_source(ast_tree)[:-1]
         real_code = parse.de_canonicalize_code(code, raw[i])
-
+        if(mode=="hs"):
+            real_code = " ".join(parse.tokenize_code_adv(real_code, True)).replace("\n \n","\n").replace("\n","#NEWLINE#")
         #print(real_code,raw[i])
         l_code.append(real_code)
 
@@ -104,7 +105,7 @@ def main(flag,task,path_load = None, path_write= None, path_raw_code=None):
         write_to_json_file("../data/"+flag+"_dataset/"+flag+".test.json", test_data)
     if(task=="json2ast"):
         print("----- TEST -----")
-        write_to_code_file(train_data, path_load, path_write,path_raw_code)
+        write_to_code_file(flag, train_data, path_load, path_write,path_raw_code)
 
     #print(train_data.get_examples(0).query)
     #print(train_data.get_examples(0).parse_tree)

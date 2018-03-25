@@ -5,7 +5,7 @@ class Indexer():
 	def __init__(self,mode):
 
 		self.mode = mode
-		self.rules = Indexer.index_reader("../../data/indexer/rules_"+self.mode+".tsv", True, True)
+		self.rules = Indexer.index_reader("../../data/indexer/rules_"+self.mode+".tsv", False, True)
 		self.node_types = Indexer.index_reader("../../data/indexer/nodes_"+self.mode+".tsv", False, False)
 		self.frontier_nodes = Indexer.index_reader("../../data/indexer/frontier_nodes_"+self.mode+".tsv", True, False)
 		self.annot_vocab = Indexer.index_reader("../../data/indexer/annot_vocab_"+self.mode+".tsv", False, False)
@@ -13,7 +13,7 @@ class Indexer():
 
 		self.rules_by_node = self.rules_index_by_node_type_index()
 		self.rules_to_children = self.extract_children_from_rules()
-
+		print(self.rules_to_children[9],self.rules_to_children[57])
 		#self.rules_index = {v:k for k,v in self.rules.items()}
 		self.node_types_index = {v:k for k,v in self.node_types.items()}
 		self.frontier_nodes_index = {v:k for k,v in self.frontier_nodes.items()}
@@ -28,6 +28,7 @@ class Indexer():
 				# print(each_line)
 				value, index = each_line.rstrip().split("\t")
 				index = int(index)
+				value = value[1:-1]
 				if remove_paranthesis:
 					value = value.replace("(", "").replace(")", "")
 				if index_to_val:
@@ -40,7 +41,7 @@ class Indexer():
 		rules_by_node_type = [[] for n in self.node_types]
 		for i in range(self.rule_length):
 			parent, raw_children = self.rules[i].split(" -> ")
-			parent = self.appostrophize(parent)
+			#parent = self.appostrophize(parent)
 			# print(parent)
 			i_node = self.get_node_index(parent)
 			rules_by_node_type[i_node].append(i)
@@ -49,18 +50,19 @@ class Indexer():
 	def extract_children_from_rules(self):
 		rules_to_children = [[] for r in self.rules]
 		for i in range(self.rule_length):
+			#print(self.rules[i])
 			parent, raw_children = self.rules[i].split(" -> ")
 
 			raw_children = raw_children.strip()
 			children_list = raw_children.split(",")
 
 			for child in children_list:
-				split_child = child.split("{")
+				split_child = child.strip().strip("(").strip(")").split("{")
 				node_type = split_child[0].strip()
-				node_type = self.appostrophize(node_type)
+				#node_type = self.appostrophize(node_type)
 				node_label = None
-				if len(split_child) == 2:
-					node_label = split_child[1].replace("}", "").strip()
+				if len(split_child) >= 2:
+					node_label="{".join(split_child[1:]).strip()[:-1]
 				node_idx = self.get_node_index(node_type)
 				child_node = (node_idx,node_label)
 				rules_to_children[i].append(child_node)

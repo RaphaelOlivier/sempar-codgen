@@ -159,6 +159,6 @@ for i in range(0, len(target_test_dataset)):
 
 print("Writing result...")
 
-path = "../../data/exp/results/test_"+mode+"_" + str(ITERATION)+"_iter.json"
+#path = "../../data/exp/results/test_"+mode+"_" + str(ITERATION)+"_iter.json"
 suffix = str(ITERATION)+"_iter"
 targetDataset.export(trees,suffix)

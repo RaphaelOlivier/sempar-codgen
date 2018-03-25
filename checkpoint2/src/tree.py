@@ -39,7 +39,7 @@ class SubTree:
     @staticmethod
     def root(grammar):
         # create a subtree with only the root node
-        st = SubTree(node_type=grammar.get_node_index("'root'"), label=None, parent=None)
+        st = SubTree(node_type=grammar.get_node_index("root"), label=None, parent=None)
         st.time_step = 0
         st.children=[]
         return st
@@ -147,6 +147,7 @@ class SubTree:
         d["children"]=[]
         for child in self.children:
             d["children"].append(child.to_dict())
+        # print(self.node_type,self.tokens)
         return d
 
 class Tree:
@@ -236,7 +237,7 @@ class BuildingTree(Tree):
         # set a token, and its child if it was not an eos token
         tkindex = tkindex.item()
         assert(self.current_node.action_type == "gen")
-        end = (tkindex==self.grammar.get_vocab_index("'<eos>'"))
+        end = (tkindex==self.grammar.get_vocab_index("<eos>"))
         if(tktype=="vocab"):
             token = self.grammar.get_vocab(tkindex)
             tk_vocab_index = tkindex
@@ -246,6 +247,13 @@ class BuildingTree(Tree):
             token = self.sentence[tkindex]
             tk_vocab_index = None
             tk_query_index = tkindex
+        if(self.grammar.get_node_type(self.current_node.node_type)=='int' and not end): # we need a number
+            #print(self.current_node.node_type)
+            try:
+                token = int(token)
+            except:
+                token=0
+
         self.current_node.set_token(token, tktype, tk_vocab_index,tk_query_index)
         if(self.verbose):
             print("new token :",token)
@@ -297,14 +305,14 @@ class OracleTree(Tree):
         if(self.verbose):
             print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index])
 
-        if(tkvocindex==self.grammar.get_vocab_index("'<eos>'")):
+        if(tkvocindex==self.grammar.get_vocab_index("<eos>")):
             self.need_to_move=True
             self.current_token_index=0
         else:
             self.need_to_move=False
             self.current_token_index+=1
         if(tkvocindex is None):
-            tkvocindex=self.grammar.get_vocab_index("'<unk>'")
+            tkvocindex=self.grammar.get_vocab_index("<unk>")
         return tkvocindex,tkcopindex,tkinvocab
 
     def set_query(self,query):

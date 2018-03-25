@@ -154,6 +154,7 @@ class ASTNode(object):
 
         sb.write('(')
         sb.write(typename(self.type))
+        # print(type(self.label))
         if self.label is not None:
             sb.write('{%s}' % self.label)
 
@@ -328,8 +329,12 @@ class ASTNode(object):
     @staticmethod
     def from_dict(d,node_types,vocab):
         node_type = node_types[d["node_type"]]
-        # print(type(node_type))
+        if isinstance(node_type,unicode):
+            node_type = node_type.encode('utf-8')
+        # print(node_type)
         label = d["label"]
+        if isinstance(label,unicode):
+            label = label.encode('utf-8')
         # print(type(label))
         value = None
         children = []
@@ -345,6 +350,7 @@ class ASTNode(object):
             else:
                 #print(tokens)
                 value = " ".join(tokens)
+        # print(node_type,value)
         return ASTNode(node_type,label,value,children)
 
 

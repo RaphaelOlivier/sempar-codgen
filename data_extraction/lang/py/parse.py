@@ -76,13 +76,13 @@ def python_ast_to_parse_tree(node):
 
 def parse_tree_to_python_ast(tree):
 
+    #print(tree.children[0].type)
     node_type = tree.type
     node_label = tree.label
-    # print(type(node_type))
     # remove root
     if node_type == 'root':
         return parse_tree_to_python_ast(tree.children[0])
-    print(node_type,type(node_type))
+    #print(node_type,type(node_type))
     ast_node = node_type()
     node_type_name = typename(node_type)
 
@@ -100,7 +100,7 @@ def parse_tree_to_python_ast(tree):
             field_label = child_node.label
             field_entry = fields_info[field_label]
             is_list = field_entry['is_list']
-
+            #print(field_type,field_label,is_list)
             if is_list:
                 field_type = field_entry['type']
                 field_value = []
@@ -115,6 +115,7 @@ def parse_tree_to_python_ast(tree):
                     for inter_node in inter_nodes:
                         if inter_node.value is None:
                             assert len(inter_node.children) == 1
+                            #print(child_node.type,inter_node)
                             sub_node_ast = parse_tree_to_python_ast(inter_node.children[0])
                             field_value.append(sub_node_ast)
                         else:
@@ -122,8 +123,10 @@ def parse_tree_to_python_ast(tree):
                             field_value.append(inter_node.value)
             else:
                 # this node either holds a value, or is an non-terminal
+
                 if child_node.value is None:
                     assert len(child_node.children) == 1
+
                     field_value = parse_tree_to_python_ast(child_node.children[0])
                 else:
                     assert child_node.is_leaf
@@ -145,6 +148,7 @@ def decode_tree_to_python_ast(decode_tree):
     from lang.py.unaryclosure import compressed_ast_to_normal
 
     compressed_ast_to_normal(decode_tree)
+
     decode_tree = decode_tree.children[0]
     terminals = decode_tree.get_leaves()
 
@@ -155,10 +159,11 @@ def decode_tree_to_python_ast(decode_tree):
 
         if terminal.type in {int, float, str, bool}:
             # cast to target data type
+            #print("hello")
             terminal.value = terminal.type(terminal.value)
 
+    #print(decode_tree.children[0].type)
     ast_tree = parse_tree_to_python_ast(decode_tree)
-
     return ast_tree
 
 

@@ -21,5 +21,5 @@ class TargetDataset:
         self.target_test_dataset = io_tools.json_to_tree_dataset(target_test_path,self.indexer)
 
     def export(self,tree_list, suffix):
-        path = "../../data/exp/results/test_"+self.mode+"_" + suffix + ".result"
+        path = "../../data/exp/results/test_"+self.mode+"_" + suffix + ".json"
         json_list = io_tools.tree_to_json_dataset(path,self.indexer,tree_list)

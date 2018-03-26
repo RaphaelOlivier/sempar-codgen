@@ -194,9 +194,8 @@ class ASTNet:
 				copy_output = dy.affine_transform([b2, w2, copy_hidden])
 				copy_vectors.append(copy_output)
 			c_t = dy.concatenate(copy_vectors)
-			copy_probs = dy.softmax(c_t)
 
-			return copy_probs
+			return c_t
 
 	def get_apply_action_embedding(self, current_state, w, b):
 
@@ -285,7 +284,7 @@ class ASTNet:
 				item_prob = dy.scalarInput(0)
 				selection_prob = dy.softmax(sel_gen * current_state.output())
 				goldentoken_vocab, goldentoken_copy, in_vocab = goldenTree.get_oracle_token()
-				print(goldentoken_vocab, goldentoken_copy, in_vocab)
+				# print(goldentoken_vocab, goldentoken_copy, in_vocab)
 				# words generated from vocabulary
 
 				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, wg, bg)  # affine tf over gen vocab
@@ -300,9 +299,9 @@ class ASTNet:
 				# words copied from the sentence
 				if(goldentoken_copy is not None and self.flag_copy):
 
-					copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2)
+					copy_vals = self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2)
 					# print(len(copy_probs.value()),goldentoken_copy)
-					item_prob += selection_prob[1] * dy.softmax(copy_probs)[goldentoken_copy]
+					item_prob += selection_prob[1] * dy.softmax(copy_vals)[goldentoken_copy]
 
 				losses.append(-dy.log(item_prob))
 
@@ -389,12 +388,12 @@ class ASTNet:
 					tree.set_token("vocab",pred_token)
 
 				if(self.flag_copy):
-					copy_probs = self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2).value()
+					copy_probs = dy.log_softmax(self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2)).value()
 					#print(len(copy_probs))
 					pred_copy = np.argmax(copy_probs)
 					pred_copy_prob = copy_probs[pred_copy] + selection_prob[1]
 
-					#print()
+					# print(pred_vocab_prob,pred_copy_prob)
 					# FOR NOW NOT AS IN THE PAPER !!
 					if(pred_vocab_prob > pred_copy_prob):
 						pred_token = pred_vocab

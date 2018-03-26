@@ -139,8 +139,8 @@ for ITER in range(ITERATION):
 
 log_writer.close()
 
-#net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
-net.load("../../data/exp/models/"+mode+"_9lowest_iter_AdamTrainer.model")
+net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
+#net.load("../../data/exp/models/"+mode+"_9lowest_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")
@@ -150,7 +150,7 @@ test_loss = 0
 for i in range(0, len(target_test_dataset)):
     input_s, real_s = sourceDataset.test_index[i], sourceDataset.test_str[i]
     # print(" ".join(real_s))
-    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=True)
+    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=False)
 
 
     generated_tree = net.forward_prop(input_s, generated_tree, mode="predict")

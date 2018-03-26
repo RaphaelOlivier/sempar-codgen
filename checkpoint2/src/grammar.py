@@ -13,7 +13,7 @@ class Indexer():
 
 		self.rules_by_node = self.rules_index_by_node_type_index()
 		self.rules_to_children = self.extract_children_from_rules()
-		print(self.rules_to_children[9],self.rules_to_children[57])
+		#print(self.rules_to_children[9],self.rules_to_children[57])
 		#self.rules_index = {v:k for k,v in self.rules.items()}
 		self.node_types_index = {v:k for k,v in self.node_types.items()}
 		self.frontier_nodes_index = {v:k for k,v in self.frontier_nodes.items()}

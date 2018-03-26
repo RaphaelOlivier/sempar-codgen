@@ -45,12 +45,12 @@ if mode == "django":
     modulo = 1000
 
 args_model = namedtuple('args', ['numLayer','embeddingSourceSize','embeddingApplySize','embeddingGenSize','embeddingNodeSize',
-				'hiddenSize','attSize','pointerSize','dropout','learningRate'])(1,128,128,128,64,256,32,256,0,0.001)
+				'hiddenSize','attSize','pointerSize','dropout','learningRate'])(1,128,128,128,64,256,50,50,0,0.001)
 
 net = ASTNet(args=args_model, vocabLengthSource=vocab_length_source,
                        vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,
                        vocabLengthTarget=vocab_length_target)
-
+# net.load("../../data/exp/models/hs_5_iter_AdamTrainer.model")
 def train(log_writer):
     target_train_dataset = targetDataset.target_train_dataset
     train_words, train_loss = 0, 0.0
@@ -67,7 +67,7 @@ def train(log_writer):
         # print(type(output_s))
         loss = net.forward_prop(input_s, goldenTree, mode = "train")
         train_loss+=loss.value()
-        net.backward_and_update(loss)
+        net.backward_prop_and_update_parameters(loss)
 
         if (j+1) % modulo == 0:
             print("--finished %r sentences" % (j+1))
@@ -140,7 +140,7 @@ for ITER in range(ITERATION):
 log_writer.close()
 
 #net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
-net.load("../../data/exp/models/"+mode+"_10_iter_AdamTrainer.model")
+#net.load("../../data/exp/models/"+mode+"_10_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")

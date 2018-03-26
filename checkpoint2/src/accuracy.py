@@ -7,17 +7,22 @@ import sys
 import argparse
 from nltk.translate.bleu_score import sentence_bleu
 
-start = time.time()
-
 from collections import Counter, defaultdict
 import numpy as np
 
+from argparse import ArgumentParser
+parser = ArgumentParser(description='Checkpoint2 Accuracy script')
+parser.add_argument('--data', type=str, default='django',
+                    help='Dataset to be used')
+args, _ = parser.parse_known_args()
+
+
 #mode = 'heartstone'
-mode = 'django'
+mode = args.data
 
 goldenTest, predicted = None, None
 
-if mode == 'heartstone':
+if mode == 'hs':
     goldenTest = "../../data/hs_dataset/hs.test.code"
     predicted = "../../data/result.code"
 

@@ -8,7 +8,8 @@ import sys
 from argparse import ArgumentParser
 from collections import Counter, defaultdict
 import tree as Tree
-
+import sys
+sys.setrecursionlimit(50000)
 
 class ASTNet:
 	def __init__(self, args, vocabLengthSource, vocabLengthActionRule, vocabLengthNodes, vocabLengthTarget):
@@ -185,33 +186,34 @@ class ASTNet:
 
 	def get_gen_copy_embedding(self,current_state, context_vector, encoded_states, w1, b1, w2, b2):
 
-			copy_vectors = []
-			for encoded_state in dy.transpose(encoded_states):
-				#print(len(encoded_state.value()))
-				#print(len(current_state.output().value()))
-				#print(len(context_vector.value()))
-				copy_input = dy.concatenate([encoded_state, current_state.output(), context_vector])
-				copy_hidden = dy.rectify(dy.affine_transform([b1, w1, copy_input]))
-				copy_output = dy.affine_transform([b2, w2, copy_hidden])
-				copy_vectors.append(copy_output)
-			c_t = dy.concatenate(copy_vectors)
+		copy_vectors = []
+		for encoded_state in dy.transpose(encoded_states):
+			#print(len(encoded_state.value()))
+			#print(len(current_state.output().value()))
+			#print(len(context_vector.value()))
+			copy_input = dy.concatenate([encoded_state, current_state.output(), context_vector])
+			copy_hidden = dy.tanh(dy.affine_transform([b1, w1, copy_input]))
+			copy_output = dy.affine_transform([b2, w2, copy_hidden])
+			copy_vectors.append(copy_output)
+		c_t = dy.concatenate(copy_vectors)
 
-			return c_t
+		return c_t
 
 	def get_apply_action_embedding(self, current_state, w, b):
-
+		rule_lookup = dy.parameter(self.actionRuleLookup)
 		s = dy.affine_transform([b, w, current_state.output()])
 		g = dy.tanh(s)
+		# print(self.actionRuleLookup,g.dim())
 		s = dy.transpose(self.actionRuleLookup) * g
 		return s
 
 	def get_gen_vocab_embedding(self,current_state, context_vector, w, b):
-
+		voc_lookup = dy.parameter(self.gentokenLookup)
 		# state = dy.concatenate([current_state.output(), context_vector])
 		state = dy.concatenate([current_state.output(),context_vector])
 		s = dy.affine_transform([b, w, state])
 		g = dy.tanh(s)
-		s = dy.transpose(self.gentokenLookup) * g
+		s = dy.transpose(voc_lookup) * g
 		return s
 
 	def decode_to_loss(self, encoded_vectors, goldenTree):
@@ -238,15 +240,14 @@ class ASTNet:
 		decoder_actions = []
 		losses = []
 
-		current_state = self.decoder.initial_state().add_input(dy.vecInput(self.inputDecoderSize))
-		resultant_parse_tree = ""
+		current_state = self.decoder.initial_state().add_input(dy.inputTensor(np.zeros(self.inputDecoderSize)))
 
 		#first timestep - specific due to the absence of parent and previous action
-		prev_action_embedding = dy.vecInput(self.embeddingApplySize)
+		prev_action_embedding = dy.inputTensor(np.zeros(self.embeddingApplySize))
 		context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 		# no parent time
 		frontier_node_type_embedding = self.nodeTypeLookup[goldenTree.get_node_type()]
-		parent_action = dy.vecInput(self.hiddenSize+self.embeddingApplySize)
+		parent_action = dy.inputTensor(np.zeros(self.hiddenSize+self.embeddingApplySize))
 		current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
 		decoder_states.append(current_state)
 		# action_type = apply
@@ -282,7 +283,7 @@ class ASTNet:
 
 			else:
 				assert(action_type == "gen")
-				item_prob = dy.scalarInput(0)
+				item_likelihood = dy.scalarInput(0)
 				if(self.flag_copy):
 					selection_prob = dy.softmax(sel_gen * current_state.output())
 				else:
@@ -291,9 +292,9 @@ class ASTNet:
 				goldentoken_vocab, goldentoken_copy, in_vocab = goldenTree.get_oracle_token()
 				# print(goldentoken_vocab, goldentoken_copy, in_vocab)
 				# words generated from vocabulary
-
 				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, wg, bg)  # affine tf over gen vocab
-				item_prob += selection_prob[0] * dy.softmax(current_gen_action_embedding)[goldentoken_vocab]
+
+				item_likelihood += selection_prob[0] * dy.softmax(current_gen_action_embedding)[goldentoken_vocab]
 
 				#print(len(current_gen_action_embedding.value()),goldentoken_vocab)
 				prev_action_embedding = self.gentokenLookup[goldentoken_vocab]
@@ -304,9 +305,9 @@ class ASTNet:
 
 					copy_vals = self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2)
 					# print(len(copy_probs.value()),goldentoken_copy)
-					item_prob += selection_prob[1] * dy.softmax(copy_vals)[goldentoken_copy]
+					item_likelihood += selection_prob[1] * dy.softmax(copy_vals)[goldentoken_copy]
 
-				losses.append(-dy.log(item_prob))
+				losses.append(-dy.log(item_likelihood))
 
 		return dy.sum_batches(dy.esum(losses))
 
@@ -354,7 +355,7 @@ class ASTNet:
 		next_rule = tree.pick_and_get_rule((rule_probs))
 		prev_action_embedding = self.actionRuleLookup[next_rule]
 		decoder_actions.append(prev_action_embedding)
-		successive_tokens = 0
+
 		while(tree.move()):
 
 			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
@@ -378,14 +379,6 @@ class ASTNet:
 				decoder_actions.append(prev_action_embedding)
 
 			if action_type == "gen":
-				successive_tokens+=1
-				if(successive_tokens>=100):
-					pred_token = eos
-					tree.set_token("vocab", np.array(pred_token))
-					prev_action_embedding = self.gentokenLookup[pred_token]
-					decoder_actions.append(prev_action_embedding)
-					successive_tokens=0
-					continue
 
 				pred_token = ''
 				# for generating from the vocabulary
@@ -416,16 +409,9 @@ class ASTNet:
 				else:
 					tree.set_token("vocab",pred_token)
 
-				if(pred_token==eos):
-					successive_tokens=0
-
 				prev_action_embedding = self.gentokenLookup[pred_token]
 				decoder_actions.append(prev_action_embedding)
 
 		return tree
-
-	def backward_and_update(self,loss):
-		loss.backward()
-		self.trainer.update()
 
 			# check if this is the way to return

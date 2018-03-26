@@ -97,6 +97,20 @@ class SubTree:
         st.child_to_explore = 0
         return st
 
+    def hard_copy(self,parent):
+        st = SubTree(self.node_type,self.label,parent)
+        st.action_type = self.action_type
+        st.rule = self.rule
+        if(st.action_type == "gen"):
+            st.tokens= self.tokens[:]
+            st.tokens_type = self.tokens_type[:]
+            st.tokens_vocab_index = self.tokens_vocab_index[:]
+            st.tokens_query_index = self.tokens_query_index[:]
+        st.time_step = self.time_step
+        st.children = [c.hard_copy(st) for c in self.children]
+        st.child_to_explore = self.child_to_explore
+        return st
+
 
     @staticmethod
     def from_dict(d,parent=None):
@@ -167,13 +181,8 @@ class Tree:
             self.current_node = self.current_node.parent
         self.current_time_step=0
 
-
-
     def move(self):
 
-        # shift the node to the next one, and specify the action type associated to its frontier node
-        # print(self.need_to_move)
-        #print("old node :",self.current_node,self.current_node.node_type,self.current_node.,self.current_node.parent, self.current_node.children, self.current_node.tokens)
         self.current_node.time_step = self.current_time_step
         assert(self.current_node.is_well_built())
 
@@ -223,6 +232,14 @@ class BuildingTree(Tree):
         self.root_node = self.current_node
         self.current_node.action_type = "apply"
         self.sentence = query
+
+    def hard_copy(self):
+        bt=BuildingTree(self.grammar,self.query, self.verbose)
+        bt.current_node = self.current_node.hard_copy()
+        bt.root_node = self.current_node
+        bt.need_to_move = self.need_to_move
+        bt.current_token_index = self.current_token_index
+        bt.current_time_step=self.current_time_step
 
     def pick_and_get_rule(self, rules_probs):
         # from the rule probabilities, find the best one conditionned to the frontier node type and update the tree

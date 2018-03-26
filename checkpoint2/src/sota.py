@@ -91,7 +91,7 @@ def train(log_writer):
     print("iter %r: train loss/word=%.4f, ppl=%.4f, time=%.2fs" %
           (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
     log_writer.write("iter %r: train loss/word=%.4f, ppl=%.4f, time=%.2fs\n" %
-                     (ITER, computed_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
+                     (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
 
     # Evaluate on development set
 

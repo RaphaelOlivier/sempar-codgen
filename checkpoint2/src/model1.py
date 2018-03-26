@@ -112,7 +112,7 @@ class ASTNet:
 
 	def forward_prop(self, input_sentence, output_tree, mode="predict"):
 
-		dy.renew_cg()
+		# dy.renew_cg()
 
 		embedded_input_sentence = []
 		for word in input_sentence:
@@ -309,7 +309,7 @@ class ASTNet:
 
 				losses.append(-dy.log(item_likelihood))
 
-		return dy.sum_batches(dy.esum(losses))
+		return dy.esum(losses)
 
 	def decode_to_prediction(self, encoded_vectors, tree, max_length):
 		# initializing decoder state

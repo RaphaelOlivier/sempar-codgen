@@ -13,7 +13,7 @@ import tree as Tree
 class ASTNet:
 	def __init__(self, args, vocabLengthSource, vocabLengthActionRule, vocabLengthNodes, vocabLengthTarget):
 
-		self.flag_copy = False
+		self.flag_copy = True
 
 		self.vocabLengthSource = vocabLengthSource
 		self.vocabLengthActionRule = vocabLengthActionRule
@@ -159,7 +159,7 @@ class ASTNet:
 
 	def reduce_learning_rate(self, factor):
 		self.learningRate = self.learningRate/factor
-		self.trainer.learningRate = self.trainer.learningRate/factor
+		self.trainer.learning_rate = self.trainer.learning_rate/factor
 
 	def parent_feed(self, parent_action_hidden_state, parent_action_embedding ):
 
@@ -283,9 +283,9 @@ class ASTNet:
 			else:
 				assert(action_type == "gen")
 				item_prob = dy.scalarInput(0)
-				selection_prob = (dy.softmax(sel_gen * current_state.output()))
+				selection_prob = dy.softmax(sel_gen * current_state.output())
 				goldentoken_vocab, goldentoken_copy, in_vocab = goldenTree.get_oracle_token()
-
+				print(goldentoken_vocab, goldentoken_copy, in_vocab)
 				# words generated from vocabulary
 
 				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, wg, bg)  # affine tf over gen vocab
@@ -353,7 +353,7 @@ class ASTNet:
 
 			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 			parent_time =  tree.get_parent_time()
-			# pprintrint(parent_time)
+			# print(parent_time)
 			prev_action_embedding = dy.vecInput(self.embeddingApplySize)
 			node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
 
@@ -394,8 +394,9 @@ class ASTNet:
 					pred_copy = np.argmax(copy_probs)
 					pred_copy_prob = copy_probs[pred_copy] + selection_prob[1]
 
+					#print()
 					# FOR NOW NOT AS IN THE PAPER !!
-					if(pred_vocab_prob > pred_copy):
+					if(pred_vocab_prob > pred_copy_prob):
 						pred_token = pred_vocab
 						tree.set_token("vocab",pred_token)
 					else:

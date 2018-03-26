@@ -108,7 +108,7 @@ def train(log_writer):
 
 # Training
 log_writer = open("../../data/exp/log/"+str(ITERATION)+"_iter_"+mode+".log", 'w')
-net.load("../../data/exp/models/hs_4lowest_iter_AdamTrainer.model")
+# net.load("../../data/exp/models/hs_4lowest_iter_AdamTrainer.model")
 print("iteration: " + str(ITERATION))
 lowest_dev_loss = float("inf")
 successive_decreasing_counter = 0
@@ -139,8 +139,8 @@ for ITER in range(ITERATION):
 
 log_writer.close()
 
-net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
-#net.load("../../data/exp/models/"+mode+"_9lowest_iter_AdamTrainer.model")
+#net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
+net.load("../../data/exp/models/"+mode+"_9lowest_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")

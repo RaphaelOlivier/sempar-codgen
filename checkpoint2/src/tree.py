@@ -271,8 +271,6 @@ class BuildingTree(Tree):
             self.current_token_index+=1
 
 
-
-
 class OracleTree(Tree):
     # Golden rees used in training
     def __init__(self, grammar, verbose = False):

@@ -204,7 +204,7 @@ class ASTNet:
 		s = dy.affine_transform([b, w, current_state.output()])
 		g = dy.tanh(s)
 		# print(self.actionRuleLookup,g.dim())
-		s = dy.transpose(self.actionRuleLookup) * g
+		s = dy.transpose(rule_lookup) * g
 		return s
 
 	def get_gen_vocab_embedding(self,current_state, context_vector, w, b):

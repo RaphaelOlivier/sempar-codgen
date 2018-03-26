@@ -351,6 +351,7 @@ class ASTNode(object):
                 #print(tokens)
                 value = " ".join(tokens)
         # print(node_type,value)
+        print(node_type,label,value)
         return ASTNode(node_type,label,value,children)
 
 

@@ -83,7 +83,10 @@ class Indexer():
 
 	def get_vocab_index(self, token):
 		# print(self.terminal_vocab)
-		return self.terminal_vocab[token]
+		if token in self.terminal_vocab.keys():
+			return self.terminal_vocab[token]
+		else:
+			return self.terminal_vocab["<unk>"]
 
 	def get_vocab(self, token_index):
 		return self.terminal_vocab_index[token_index]

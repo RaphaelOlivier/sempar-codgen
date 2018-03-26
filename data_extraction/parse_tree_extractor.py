@@ -71,12 +71,15 @@ def write_to_code_file(mode, data, path_to_load, path_to_export, path_raw_code):
         l = json.load(f, encoding='utf8')
     l_code = []
     for i in range(len(l)):
+        print(raw[i])
         t = ASTNode.from_dict(l[i], nt,v)
         ast_tree = parse.decode_tree_to_python_ast(t)
         code = astor.to_source(ast_tree)[:-1]
         real_code = parse.de_canonicalize_code(code, raw[i])
         if(mode=="hs"):
             real_code = " ".join(parse.tokenize_code_adv(real_code, True)).replace("\n \n","\n").replace("\n","#NEWLINE#")
+        if(mode=="django"):
+            real_code = " ".join(parse.tokenize_code_adv(real_code, False))
         #print(real_code,raw[i])
         l_code.append(real_code)
 

@@ -79,7 +79,7 @@ def parse_tree_to_python_ast(tree):
     #print(tree.children[0].type)
     node_type = tree.type
     node_label = tree.label
-    # remove root
+
     if node_type == 'root':
         return parse_tree_to_python_ast(tree.children[0])
     #print(node_type,type(node_type))

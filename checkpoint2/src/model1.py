@@ -28,6 +28,7 @@ class ASTNet:
 		self.embeddingNodeSize = args.embeddingNodeSize
 		self.hiddenSize = args.hiddenSize
 		self.attSize = args.attSize
+		self.pointerSize = args.pointerSize
 		self.dropout = args.dropout
 		self.embeddingRuletypeSize = 2
 		self.learningRate= args.learningRate
@@ -62,9 +63,9 @@ class ASTNet:
 		self.w_out_vocab = self.model.add_parameters((self.embeddingApplySize, self.hiddenSize + self.hiddenSize * 2)) # should change whe hidden layers increase
 		self.b_out_vocab = self.model.add_parameters((self.embeddingApplySize))
 
-		self.w_pointer_hidden = self.model.add_parameters((self.hiddenSize, 2*self.hiddenSize + 2*self.hiddenSize + self.hiddenSize))
-		self.b_pointer_hidden = self.model.add_parameters((self.hiddenSize))
-		self.w_pointer_out = self.model.add_parameters((1, self.hiddenSize))
+		self.w_pointer_hidden = self.model.add_parameters((self.pointerSize, 2*self.hiddenSize + 2*self.hiddenSize + self.hiddenSize))
+		self.b_pointer_hidden = self.model.add_parameters((self.pointerSize))
+		self.w_pointer_out = self.model.add_parameters((1, self.pointerSize))
 		self.b_pointer_out = self.model.add_parameters((1))
 		# initializing the encoder and decoder
 		self.forward_encoder = dy.LSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.model)
@@ -282,22 +283,24 @@ class ASTNet:
 			else:
 				assert(action_type == "gen")
 				item_prob = dy.scalarInput(0)
-				selection_prob = dy.softmax(sel_gen * current_state.output())
+				if(self.flag_copy):
+					selection_prob = dy.softmax(sel_gen * current_state.output())
+				else:
+					selection_prob = dy.inputTensor([1,0])
+
 				goldentoken_vocab, goldentoken_copy, in_vocab = goldenTree.get_oracle_token()
 				# print(goldentoken_vocab, goldentoken_copy, in_vocab)
 				# words generated from vocabulary
 
 				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, wg, bg)  # affine tf over gen vocab
-				if(self.flag_copy):
-					item_prob += selection_prob[0] * dy.softmax(current_gen_action_embedding)[goldentoken_vocab]
-				else:
-					item_prob += dy.softmax(current_gen_action_embedding)[goldentoken_vocab]
+				item_prob += selection_prob[0] * dy.softmax(current_gen_action_embedding)[goldentoken_vocab]
+
 				#print(len(current_gen_action_embedding.value()),goldentoken_vocab)
 				prev_action_embedding = self.gentokenLookup[goldentoken_vocab]
 				decoder_actions.append(prev_action_embedding)
 
 				# words copied from the sentence
-				if(goldentoken_copy is not None and self.flag_copy):
+				if(goldentoken_copy is not None):
 
 					copy_vals = self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2)
 					# print(len(copy_probs.value()),goldentoken_copy)
@@ -309,6 +312,10 @@ class ASTNet:
 
 	def decode_to_prediction(self, encoded_vectors, tree, max_length):
 		# initializing decoder state
+		unk=1
+		eos=2
+		source_vocab_index = tree.get_query_vocab_index()
+		source_unk = np.array([x for x, t in enumerate(source_vocab_index) if t == unk])
 
 		wr = dy.parameter(self.w_out_rule) # the weight matrix
 		br = dy.parameter(self.b_out_rule)
@@ -331,14 +338,14 @@ class ASTNet:
 		# context vector - 2*256
 		# node type - 64  - need to change this
 
-		current_state = self.decoder.initial_state().add_input(dy.vecInput(self.inputDecoderSize))
+		current_state = self.decoder.initial_state().add_input(dy.inputTensor(np.zeros(self.inputDecoderSize)))
 
 		#first timestep - specific due to the absence of parent and previous action
-		prev_action_embedding = dy.vecInput(self.embeddingApplySize)
+		prev_action_embedding = dy.inputTensor(np.zeros(self.embeddingApplySize))
 		context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 		# no parent time
 		frontier_node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
-		parent_action = dy.vecInput(self.hiddenSize+self.embeddingApplySize)
+		parent_action = dy.inputTensor(np.zeros(self.hiddenSize+self.embeddingApplySize))
 		current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
 		decoder_states.append(current_state)
 		# action_type = "apply"
@@ -347,12 +354,12 @@ class ASTNet:
 		next_rule = tree.pick_and_get_rule((rule_probs))
 		prev_action_embedding = self.actionRuleLookup[next_rule]
 		decoder_actions.append(prev_action_embedding)
-
+		successive_tokens = 0
 		while(tree.move()):
 
 			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 			parent_time =  tree.get_parent_time()
-			# print(parent_time)
+			print(parent_time)
 			prev_action_embedding = dy.vecInput(self.embeddingApplySize)
 			node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
 
@@ -371,36 +378,46 @@ class ASTNet:
 				decoder_actions.append(prev_action_embedding)
 
 			if action_type == "gen":
+				successive_tokens+=1
+				if(successive_tokens>=100):
+					pred_token = eos
+					tree.set_token("vocab", np.array(pred_token))
+					prev_action_embedding = self.gentokenLookup[pred_token]
+					decoder_actions.append(prev_action_embedding)
+					successive_tokens=0
+					continue
 
 				pred_token = ''
 				# for generating from the vocabulary
-				selection_prob = dy.log_softmax(sel_gen * current_state.output()).value()
+				if(self.flag_copy):
+					selection_prob = dy.softmax(sel_gen * current_state.output()).value()
+				else:
+					selection_prob = np.array([1,0])
 
 
 				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state, context_vector, wg, bg)  # affine tf over gen vocab
-				rule_probs_vocab = dy.log_softmax(current_gen_action_embedding).value() # check if transpose needed
-				pred_vocab = np.argmax(rule_probs_vocab)
+				# print(selection_prob[0],dy.softmax(current_gen_action_embedding).value())
+				probs_vocab = selection_prob[0] * np.array(dy.softmax(current_gen_action_embedding).value())
+				probs_vocab[unk]=0
+
+
 				if(self.flag_copy):
-					pred_vocab_prob =rule_probs_vocab[pred_vocab] + selection_prob[0]
+					copy_probs = selection_prob[1] * np.array(dy.softmax(self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2)).value())
+					for i in range(len(source_vocab_index)):
+						if(source_vocab_index[i] != unk):
+							probs_vocab[source_vocab_index[i]]+= copy_probs[i]
+					best_copy_unk = np.argmax(copy_probs[source_unk])
+					best_copy_unk = source_unk[best_copy_unk]
+					probs_vocab[unk]=copy_probs[best_copy_unk]
+
+				pred_token = np.argmax(probs_vocab)
+				if(pred_token==unk):
+					tree.set_token("copy", best_copy_unk)
 				else:
-					pred_vocab_prob =rule_probs_vocab[pred_vocab]
-					pred_token = pred_vocab
 					tree.set_token("vocab",pred_token)
 
-				if(self.flag_copy):
-					copy_probs = dy.log_softmax(self.get_gen_copy_embedding(current_state, context_vector, encoded_states, wp1, bp1, wp2, bp2)).value()
-					#print(len(copy_probs))
-					pred_copy = np.argmax(copy_probs)
-					pred_copy_prob = copy_probs[pred_copy] + selection_prob[1]
-
-					# print(pred_vocab_prob,pred_copy_prob)
-					# FOR NOW NOT AS IN THE PAPER !!
-					if(pred_vocab_prob > pred_copy_prob):
-						pred_token = pred_vocab
-						tree.set_token("vocab",pred_token)
-					else:
-						pred_token = pred_copy
-						tree.set_token("copy", pred_token)
+				if(pred_token==eos):
+					successive_tokens=0
 
 				prev_action_embedding = self.gentokenLookup[pred_token]
 				decoder_actions.append(prev_action_embedding)

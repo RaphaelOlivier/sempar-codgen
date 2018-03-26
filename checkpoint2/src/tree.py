@@ -259,10 +259,12 @@ class BuildingTree(Tree):
                 token = int(token)
             except:
                 token=0
+        if(self.grammar.get_node_type(self.current_node.node_type)=='int' and end and self.current_token_index==0):
+            self.current_node.set_token(0, "vocab", 1, None)
 
         self.current_node.set_token(token, tktype, tk_vocab_index,tk_query_index)
         if(self.verbose):
-            print("new token :",token)
+            print("new token of type",tktype,":",token)
         if(end):
             self.need_to_move = True
             self.current_token_index=0
@@ -270,6 +272,11 @@ class BuildingTree(Tree):
             self.need_to_move = False
             self.current_token_index+=1
 
+    def get_query_vocab_index(self):
+        a = np.zeros(len(self.sentence)).astype(int)
+        for i, w in enumerate(self.sentence):
+            a[i] = self.grammar.get_vocab_index(w)
+        return a
 
 class OracleTree(Tree):
     # Golden rees used in training

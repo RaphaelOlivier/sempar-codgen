@@ -45,7 +45,7 @@ if mode == "django":
     modulo = 1000
 
 args_model = namedtuple('args', ['numLayer','embeddingSourceSize','embeddingApplySize','embeddingGenSize','embeddingNodeSize',
-				'hiddenSize','attSize','dropout','learningRate'])(1,128,128,128,64,256,32,0,0.001)
+				'hiddenSize','attSize','pointerSize','dropout','learningRate'])(1,128,128,128,64,256,32,256,0,0.001)
 
 net = ASTNet(args=args_model, vocabLengthSource=vocab_length_source,
                        vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,
@@ -139,8 +139,8 @@ for ITER in range(ITERATION):
 
 log_writer.close()
 
-net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
-#net.load("../../data/exp/models/"+mode+"_9lowest_iter_AdamTrainer.model")
+#net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
+net.load("../../data/exp/models/"+mode+"_10_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")
@@ -150,7 +150,7 @@ test_loss = 0
 for i in range(0, len(target_test_dataset)):
     input_s, real_s = sourceDataset.test_index[i], sourceDataset.test_str[i]
     # print(" ".join(real_s))
-    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=False)
+    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=True)
 
 
     generated_tree = net.forward_prop(input_s, generated_tree, mode="predict")

@@ -16,7 +16,7 @@ import tree
 parser = ArgumentParser(description='Checkpoint2 Code Generator')
 parser.add_argument('--data', type=str, default='hs',
                     help='Dataset to be used')
-parser.add_argument('--iter', type=int, default=20,
+parser.add_argument('--iter', type=int, default=2,
                     help='Training iteration')
 
 args, _ = parser.parse_known_args()

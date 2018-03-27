@@ -14,21 +14,23 @@ from argparse import ArgumentParser
 parser = ArgumentParser(description='Checkpoint2 Accuracy script')
 parser.add_argument('--data', type=str, default='django',
                     help='Dataset to be used')
+parser.add_argument('--predicted_path', type=str, default="../../data/result.code",
+                    help='Path storing predicted code')
 args, _ = parser.parse_known_args()
 
 
 #mode = 'heartstone'
 mode = args.data
-
+predicted = args.predicted_path
 goldenTest, predicted = None, None
 
 if mode == 'hs':
     goldenTest = "../../data/hs_dataset/hs.test.code"
-    predicted = "../../data/result.code"
+    #predicted = "../../data/result.code"
 
 if mode == 'django':
     goldenTest = "../../data/django_dataset/django.test.code"
-    predicted = "../../data/result.code"
+    #predicted = "../../data/result.code"
 
 
 total = 0

@@ -5,6 +5,7 @@ from cStringIO import StringIO
 
 from lang.util import typename
 
+
 class ASTNode(object):
     def __init__(self, node_type, label=None, value=None, children=None):
         self.type = node_type
@@ -25,7 +26,8 @@ class ASTNode(object):
             else:
                 raise AttributeError('Wrong type for child nodes')
 
-        assert not (bool(children) and bool(value)), 'terminal node with a value cannot have children'
+        assert not (bool(children) and bool(value)
+                    ), 'terminal node with a value cannot have children'
 
     @property
     def is_leaf(self):
@@ -150,7 +152,8 @@ class ASTNode(object):
     def pretty_print_helper(self, sb, depth, new_line=False):
         if new_line:
             sb.write('\n')
-            for i in xrange(depth): sb.write(' ')
+            for i in xrange(depth):
+                sb.write(' ')
 
         sb.write('(')
         sb.write(typename(self.type))
@@ -171,7 +174,8 @@ class ASTNode(object):
             child.pretty_print_helper(sb, depth + 2, new_line)
 
         sb.write('\n')
-        for i in xrange(depth): sb.write(' ')
+        for i in xrange(depth):
+            sb.write(' ')
         sb.write(')')
 
     def get_leaves(self):
@@ -261,24 +265,24 @@ class ASTNode(object):
 
         return new_tree
 
-    def to_dict(self,query,grammar,vocab):
+    def to_dict(self, query, grammar, vocab):
         # print(vocab)
         d = dict()
         node_type_id = grammar.get_node_type_id(self)
         # print(type(self.type))
-        d["node_type"]= node_type_id
-        d["label"]=self.label
+        d["node_type"] = node_type_id
+        d["label"] = self.label
 
         if(len(self.children)):
             d["action_type"] = "apply"
-            children_info = [(c.type,c.label) for c in self.children]
+            children_info = [(c.type, c.label) for c in self.children]
             rule_id = grammar.rule_to_id[self.to_rule()]
-            d["rule"]=rule_id
+            d["rule"] = rule_id
 
-            children_dicts=[]
+            children_dicts = []
             for child in self.children:
-                children_dicts.append(child.to_dict(query,grammar,vocab))
-            d["children"]= children_dicts
+                children_dicts.append(child.to_dict(query, grammar, vocab))
+            d["children"] = children_dicts
         else:
             d["action_type"] = "gen"
             assert(type(self) is not Rule)
@@ -286,9 +290,9 @@ class ASTNode(object):
                 tokens = [self.value] + ["<eos>"]
             else:
                 tokens = self.value.split() + ["<eos>"]
-            tokens_type=[]
-            tokens_vocab_index=[]
-            tokens_query_index=[]
+            tokens_type = []
+            tokens_vocab_index = []
+            tokens_query_index = []
             for token in tokens:
                 if(token in vocab):
                     tokens_type.append("vocab")
@@ -313,46 +317,47 @@ class ASTNode(object):
                         tokens_type.append("copy")
                         tokens_query_index.append(query.index(str(token)))
                         tokens_vocab_index.append(vocab["<unk>"])
-                    else: # word is nowhere : SHOULDN'T HAPPEN BUT DOES
-                        print self.value,"||||||", query
-                        print "Impossible word :",token
+                    else:  # word is nowhere : SHOULDN'T HAPPEN BUT DOES
+                        print self.value, "||||||", query
+                        print "Impossible word :", token
                         tokens_type.append("vocab")
                         tokens_query_index.append(None)
                         tokens_vocab_index.append(vocab["<unk>"])
 
-            d["tokens"]=tokens
-            d["tokens_type"]=tokens_type
-            d["tokens_query_index"]=tokens_query_index
-            d["tokens_vocab_index"]=tokens_vocab_index
+            d["tokens"] = tokens
+            d["tokens_type"] = tokens_type
+            d["tokens_query_index"] = tokens_query_index
+            d["tokens_vocab_index"] = tokens_vocab_index
 
         return d
+
     @staticmethod
-    def from_dict(d,node_types,vocab):
+    def from_dict(d, node_types, vocab):
         node_type = node_types[d["node_type"]]
-        if isinstance(node_type,unicode):
+        if isinstance(node_type, unicode):
             node_type = node_type.encode('utf-8')
         # print(node_type)
         label = d["label"]
-        if isinstance(label,unicode):
+        if isinstance(label, unicode):
             label = label.encode('utf-8')
         # print(type(label))
         value = None
         children = []
-        if(d["action_type"]=="apply"):
-            children = [ASTNode.from_dict(c,node_types,vocab) for c in d["children"]]
+        if(d["action_type"] == "apply"):
+            children = [ASTNode.from_dict(c, node_types, vocab) for c in d["children"]]
 
         else:
             tokens = d["tokens"][:-1]
-            if(len(tokens)==1):
+            if(len(tokens) == 1):
                 value = tokens[0]
-                if isinstance(value,unicode):
+                if isinstance(value, unicode):
                     value = value.encode('utf-8')
             else:
-                #print(tokens)
+                # print(tokens)
                 value = " ".join(tokens)
         # print(node_type,value)
-        print(node_type,label,value)
-        return ASTNode(node_type,label,value,children)
+        # print(node_type,label,value)
+        return ASTNode(node_type, label, value, children)
 
 
 class DecodeTree(ASTNode):
@@ -374,7 +379,6 @@ class DecodeTree(ASTNode):
             new_tree.add_child(child.copy())
 
         return new_tree
-
 
 
 class Rule(ASTNode):
@@ -403,7 +407,7 @@ if __name__ == '__main__':
     import ast
     t1 = ASTNode('root', children=[
         ASTNode(str, 'a1_label', children=[ASTNode(int, children=[ASTNode('a21', value=123)]),
-                                            ASTNode(ast.NodeTransformer, children=[ASTNode('a21', value='hahaha')])]
+                                           ASTNode(ast.NodeTransformer, children=[ASTNode('a21', value='hahaha')])]
                 ),
         ASTNode('a2', children=[ASTNode('a21', value='asdf')])
     ])
@@ -416,7 +420,6 @@ if __name__ == '__main__':
     ])
 
     print t1 == t2
-
 
     a, b = t1.get_productions(include_value_node=True)
 

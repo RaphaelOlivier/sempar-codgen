@@ -44,39 +44,42 @@ modulo = 10
 if mode == "django":
     modulo = 100
 
-args_model = namedtuple('args', ['numLayer','embeddingSourceSize','embeddingApplySize','embeddingGenSize','embeddingNodeSize',
-				'hiddenSize','attSize','pointerSize','dropout','learningRate'])(1,128,128,128,64,256,50,50,0.2,0.001)
+args_model = namedtuple('args', ['numLayer', 'embeddingSourceSize', 'embeddingApplySize', 'embeddingGenSize', 'embeddingNodeSize',
+                                 'hiddenSize', 'attSize', 'pointerSize', 'dropout', 'learningRate'])(1, 128, 128, 128, 64, 256, 50, 50, 0.0, 0.001)
 
 net = ASTNet(args=args_model, vocabLengthSource=vocab_length_source,
-                       vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,
-                       vocabLengthTarget=vocab_length_target)
+             vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,
+             vocabLengthTarget=vocab_length_target)
 # net.load("../../data/exp/models/hs_5_iter_AdamTrainer.model")
+
+
 def train(log_writer):
     target_train_dataset = targetDataset.target_train_dataset
     train_words, train_loss = 0, 0.0
     a = np.arange(len(target_train_dataset))
     np.random.shuffle(a)
-    batch_size = 16
+    batch_size = 8
     for k in range(0, len(a)-batch_size, batch_size):
         dy.renew_cg()
         losses = []
-        for j in range(k,k+batch_size):
+        for j in range(k, k+batch_size):
             i = a[j]
-            input_s, real_s, goldenTree = sourceDataset.train_index[i], sourceDataset.train_str[i], target_train_dataset[i].copy(verbose = False)
+            input_s, real_s, goldenTree = sourceDataset.train_index[i], sourceDataset.train_str[i], target_train_dataset[i].copy(
+                verbose=False)
 
             goldenTree.set_query(real_s)
 
             train_words += goldenTree.length
             # print(input_s,output_s.current_node)
             # print(type(output_s))
-            loss = net.forward_prop(input_s, goldenTree, mode = "train")
+            loss = net.forward_prop(input_s, goldenTree, mode="train")
             losses.append(loss)
             # print("here")
         # print("there")
         batch_loss = dy.esum(losses)
         loss_val = batch_loss.value()
         # print("batch loss :", loss_val)
-        train_loss+=loss_val
+        train_loss += loss_val
         # print("bonjour")
         net.backward_prop_and_update_parameters(batch_loss)
         if k % (modulo*batch_size) == 0:
@@ -99,14 +102,15 @@ def train(log_writer):
     dev_words, dev_loss = 0, 0.0
     dev_loss = 0
     for i in range(0, len(target_dev_dataset)):
-        input_s, real_s, goldenTree = sourceDataset.dev_index[i], sourceDataset.dev_str[i], target_dev_dataset[i].copy(verbose=False)
+        input_s, real_s, goldenTree = sourceDataset.dev_index[i], sourceDataset.dev_str[i], target_dev_dataset[i].copy(
+            verbose=False)
 
         goldenTree.set_query(real_s)
 
         dev_words += goldenTree.length
 
-        loss = net.forward_prop(input_s, goldenTree, mode = "validate")
-        dev_loss+=loss.value()
+        loss = net.forward_prop(input_s, goldenTree, mode="validate")
+        dev_loss += loss.value()
 
     dev_loss_per_word = dev_loss/dev_words
     dev_perplexity = math.exp(dev_loss/dev_words)
@@ -132,7 +136,7 @@ for ITER in range(ITERATION):
         print("Saving lowest dev perplexity: " +
               str(lowest_dev_perplexity) + " at iteration: " + str(ITER) + "...")
         net.save("../../data/exp/models/"+mode+"_"+str(ITER) +
-                   "lowest_iter_AdamTrainer.model")
+                 "lowest_iter_AdamTrainer.model")
         print("----------------------------------")
     if lowest_dev_loss > dev_loss_per_word:
         lowest_dev_loss = dev_loss_per_word
@@ -149,8 +153,8 @@ for ITER in range(ITERATION):
 
 log_writer.close()
 
-#net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
-#net.load("../../data/exp/models/"+mode+"_10_iter_AdamTrainer.model")
+# net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
+# net.load("../../data/exp/models/"+mode+"_10_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")
@@ -162,7 +166,6 @@ for i in range(0, len(target_test_dataset)):
     # print(" ".join(real_s))
     generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=False)
 
-
     generated_tree = net.forward_prop(input_s, generated_tree, mode="predict")
     generated_tree.go_to_root()
     trees.append(generated_tree)
@@ -171,4 +174,4 @@ print("Writing result...")
 
 #path = "../../data/exp/results/test_"+mode+"_" + str(ITERATION)+"_iter.json"
 suffix = str(ITERATION)+"_iter"
-targetDataset.export(trees,suffix)
+targetDataset.export(trees, suffix)

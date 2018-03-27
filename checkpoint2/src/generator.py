@@ -4,9 +4,8 @@ import random
 import math
 import sys
 import numpy as np
-import datetime
 
-from model1 import ASTNet
+from model1_test import ASTNet
 import source_dataset
 import target_dataset
 
@@ -123,12 +122,12 @@ def train(log_writer):
 
 # Training
 log_writer = open("../../data/exp/log/"+str(ITERATION)+"_iter_"+mode+".log", 'w')
-# net.load("../../data/exp/models/hs_4lowest_iter_AdamTrainer.model")
+#net.load("../../data/exp/models/hs_4lowest_iter_AdamTrainer.model")
+'''
 print("iteration: " + str(ITERATION))
 lowest_dev_loss = float("inf")
 successive_decreasing_counter = 0
 lowest_dev_perplexity = float("inf")
-today = datetime.datetime.now().strftime("%Y-%m-%d")
 for ITER in range(ITERATION):
     # Perform training
     dev_loss_per_word, dev_perplexity = train(log_writer)
@@ -137,8 +136,8 @@ for ITER in range(ITERATION):
         print("----------------------------------")
         print("Saving lowest dev perplexity: " +
               str(lowest_dev_perplexity) + " at iteration: " + str(ITER) + "...")
-        net.save("../../data/exp/models/"+mode+"_"+str(ITER) +"_"+str(today) +
-                 "_lowest_iter_AdamTrainer.model")
+        net.save("../../data/exp/models/"+mode+"_"+str(ITER) +
+                 "lowest_iter_AdamTrainer.model")
         print("----------------------------------")
     if lowest_dev_loss > dev_loss_per_word:
         lowest_dev_loss = dev_loss_per_word
@@ -156,7 +155,10 @@ for ITER in range(ITERATION):
 log_writer.close()
 
 # net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
-# net.load("../../data/exp/models/"+mode+"_10_iter_AdamTrainer.model")
+'''
+#net.load("../../data/exp/models/django_8lowest_iter_AdamTrainer.model")
+
+net.load("../../data/exp/models/hs_0_2018-03-27_lowest_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")
@@ -175,5 +177,5 @@ for i in range(0, len(target_test_dataset)):
 print("Writing result...")
 
 #path = "../../data/exp/results/test_"+mode+"_" + str(ITERATION)+"_iter.json"
-suffix = str(ITERATION)+"_iter"+"_"+str(today)
+suffix = str(ITERATION)+"_iter"
 targetDataset.export(trees, suffix)

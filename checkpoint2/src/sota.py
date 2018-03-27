@@ -40,9 +40,9 @@ vocab_length_rules = targetIndexer.rule_length
 # Reading data
 
 # start Dynet and define trainer
-modulo = 100
+modulo = 10
 if mode == "django":
-    modulo = 1000
+    modulo = 100
 
 args_model = namedtuple('args', ['numLayer','embeddingSourceSize','embeddingApplySize','embeddingGenSize','embeddingNodeSize',
 				'hiddenSize','attSize','pointerSize','dropout','learningRate'])(1,128,128,128,64,256,50,50,0,0.001)
@@ -56,25 +56,35 @@ def train(log_writer):
     train_words, train_loss = 0, 0.0
     a = np.arange(len(target_train_dataset))
     np.random.shuffle(a)
-    for j in range(0, len(a)):
-        i = a[j]
-        input_s, real_s, goldenTree = sourceDataset.train_index[i], sourceDataset.train_str[i], target_train_dataset[i].copy(verbose = False)
+    batch_size = 16
+    for k in range(0, len(a)-batch_size, batch_size):
+        dy.renew_cg()
+        losses = []
+        for j in range(k,k+batch_size):
+            i = a[j]
+            input_s, real_s, goldenTree = sourceDataset.train_index[i], sourceDataset.train_str[i], target_train_dataset[i].copy(verbose = False)
 
-        goldenTree.set_query(real_s)
+            goldenTree.set_query(real_s)
 
-        train_words += goldenTree.length
-        # print(input_s,output_s.current_node)
-        # print(type(output_s))
-        loss = net.forward_prop(input_s, goldenTree, mode = "train")
-        train_loss+=loss.value()
-        net.backward_prop_and_update_parameters(loss)
-
-        if (j+1) % modulo == 0:
-            print("--finished %r sentences" % (j+1))
+            train_words += goldenTree.length
+            # print(input_s,output_s.current_node)
+            # print(type(output_s))
+            loss = net.forward_prop(input_s, goldenTree, mode = "train")
+            losses.append(loss)
+            # print("here")
+        # print("there")
+        batch_loss = dy.esum(losses)
+        loss_val = batch_loss.value()
+        # print("batch loss :", loss_val)
+        train_loss+=loss_val
+        # print("bonjour")
+        net.backward_prop_and_update_parameters(batch_loss)
+        if k % (modulo*batch_size) == 0:
+            print("--finished %r sentences" % k)
             print("iter %r: train loss/word=%.4f, ppl=%.4f, time=%.2fs" %
                   (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
 
-            log_writer.write("--finished %r sentences\n" % (j+1))
+            log_writer.write("--finished %r sentences\n" % k)
             log_writer.write("iter %r: train loss/word=%.4f, ppl=%.4f, time=%.2fs\n" %
                              (ITER, train_loss/train_words, math.exp(train_loss/train_words), time.time()-start))
 
@@ -150,7 +160,7 @@ test_loss = 0
 for i in range(0, len(target_test_dataset)):
     input_s, real_s = sourceDataset.test_index[i], sourceDataset.test_str[i]
     # print(" ".join(real_s))
-    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=True)
+    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=False)
 
 
     generated_tree = net.forward_prop(input_s, generated_tree, mode="predict")

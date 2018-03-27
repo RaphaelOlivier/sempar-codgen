@@ -22,7 +22,6 @@ args, _ = parser.parse_known_args()
 #mode = 'heartstone'
 mode = args.data
 predicted = args.predicted_path
-goldenTest, predicted = None, None
 
 if mode == 'hs':
     goldenTest = "../../data/hs_dataset/hs.test.code"

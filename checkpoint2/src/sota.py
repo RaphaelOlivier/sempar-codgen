@@ -45,7 +45,7 @@ if mode == "django":
     modulo = 100
 
 args_model = namedtuple('args', ['numLayer','embeddingSourceSize','embeddingApplySize','embeddingGenSize','embeddingNodeSize',
-				'hiddenSize','attSize','pointerSize','dropout','learningRate'])(1,128,128,128,64,256,50,50,0,0.001)
+				'hiddenSize','attSize','pointerSize','dropout','learningRate'])(1,128,128,128,64,256,50,50,0.2,0.001)
 
 net = ASTNet(args=args_model, vocabLengthSource=vocab_length_source,
                        vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,

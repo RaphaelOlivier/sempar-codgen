@@ -255,6 +255,16 @@ class BuildingTree(Tree):
             print("new rule :",self.grammar.get_rule(pred_rule))
         return pred_rule
 
+    def get_authorized_rules(self):
+        return self.grammar.rules_from_node(self.current_node.node_type)
+
+    def set_rule(self, pred_rule):
+        child_nodes = self.grammar.get_children(pred_rule)
+        self.current_node.set_rule(pred_rule, child_nodes)
+        self.need_to_move=True
+        if(self.verbose):
+            print("new rule :",self.grammar.get_rule(pred_rule))
+
     def set_token(self, tktype, tkindex):
         # print(tkindex)
         # set a token, and its child if it was not an eos token

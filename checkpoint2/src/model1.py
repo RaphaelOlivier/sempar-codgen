@@ -405,9 +405,10 @@ class ASTNet:
 					for i in range(len(source_vocab_index)):
 						if(source_vocab_index[i] != unk):
 							probs_vocab[source_vocab_index[i]]+= copy_probs[i]
-					best_copy_unk = np.argmax(copy_probs[source_unk])
-					best_copy_unk = source_unk[best_copy_unk]
-					probs_vocab[unk]=copy_probs[best_copy_unk]
+					if(len(source_unk)>0):
+						best_copy_unk = np.argmax(copy_probs[source_unk])
+						best_copy_unk = source_unk[best_copy_unk]
+						probs_vocab[unk]=copy_probs[best_copy_unk]
 
 				pred_token = np.argmax(probs_vocab)
 				if(pred_token==unk):

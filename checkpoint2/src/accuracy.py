@@ -6,7 +6,7 @@ import math
 import sys
 import argparse
 from nltk.translate.bleu_score import sentence_bleu
-
+import re
 from collections import Counter, defaultdict
 import numpy as np
 
@@ -57,3 +57,15 @@ with open(goldenTest, "r", encoding='utf-8', errors='ignore') as s_file, open(pr
         cum_score = cum_score + (sentence_bleu(reference, candidate))  # cumulative score blue
     total_score = cum_score*100.0/total
     print('BLEU score (percent): %.2f' % (total_score))
+
+
+
+def tokenize_for_bleu_eval(code):
+    code = re.sub(r'([^A-Za-z0-9_])', r' \1 ', code)
+    code = re.sub(r'([a-z])([A-Z])', r'\1 \2', code)
+    code = re.sub(r'\s+', ' ', code)
+    code = code.replace('"', '`')
+    code = code.replace('\'', '`')
+    tokens = [t for t in code.split(' ') if t]
+
+    return tokens

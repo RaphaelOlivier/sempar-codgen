@@ -2,7 +2,7 @@ from collections import namedtuple
 import cPickle
 from collections import Iterable, OrderedDict, defaultdict
 from cStringIO import StringIO
-
+import re
 from lang.util import typename
 
 
@@ -289,7 +289,9 @@ class ASTNode(object):
             if(type(self.value) is not str):
                 tokens = [self.value] + ["<eos>"]
             else:
+                #print(self.value)
                 tokens = self.value.split() + ["<eos>"]
+                #print(tokens)
             tokens_type = []
             tokens_vocab_index = []
             tokens_query_index = []
@@ -320,9 +322,19 @@ class ASTNode(object):
                     else:  # word is nowhere : SHOULDN'T HAPPEN BUT DOES
                         print self.value, "||||||", query
                         print "Impossible word :", token
+
+                        match = re.findall('[A-Z][^A-Z]*', str(token))
+                        print("match: " + str(match))
+                        print("here: " + str(token))
+                        for m in match:
+                            tokens_type.append("vocab")
+                            tokens_query_index.append(None)
+                            tokens_vocab_index.append(vocab["<unk>"])
+                        '''
                         tokens_type.append("vocab")
                         tokens_query_index.append(None)
                         tokens_vocab_index.append(vocab["<unk>"])
+                        '''
 
             d["tokens"] = tokens
             d["tokens_type"] = tokens_type

@@ -365,7 +365,7 @@ class ASTNet:
 
 			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 			parent_time =  tree.get_parent_time()
-			# print(parent_time)
+			print(parent_time)
 			prev_action_embedding = dy.vecInput(self.embeddingApplySize)
 			node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
 
@@ -386,7 +386,6 @@ class ASTNet:
 
 			if action_type == "gen":
 
-				pred_token = ''
 				# for generating from the vocabulary
 				if(self.flag_copy):
 					selection_prob = dy.softmax(sel_gen * current_state_output).value()

@@ -320,15 +320,15 @@ class ASTNode(object):
                         tokens_query_index.append(query.index(str(token)))
                         tokens_vocab_index.append(vocab["<unk>"])
                     else:  # word is nowhere : SHOULDN'T HAPPEN BUT DOES
-                        
+
 
                         match = re.findall("[A-Z][^A-Z]*", str(token))
                         if len(match) > 1:
                             #print(match)
                             #print(type(match))
-                            
+
                             tokens = list(match)
-                            
+
                             #print("here: " + str(tokens) + " " + str(token))
                             #MinionCard ["Minion", "Card"]
                             for m in match:
@@ -347,8 +347,8 @@ class ASTNode(object):
                             tokens_type.append("vocab")
                             tokens_query_index.append(None)
                             tokens_vocab_index.append(vocab["<unk>"])
-                        
-                        
+
+
             #print("tokens: " + str(tokens))
             d["tokens"] = tokens
             #print("dtokens: " + str(d["tokens"]))
@@ -375,6 +375,7 @@ class ASTNode(object):
             children = [ASTNode.from_dict(c, node_types, vocab) for c in d["children"]]
 
         else:
+            # print d["tokens"]
             tokens = d["tokens"][:-1]
             if(len(tokens) == 1):
                 value = tokens[0]

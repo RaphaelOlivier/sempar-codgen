@@ -8,7 +8,7 @@ import ast
 
 from argparse import ArgumentParser
 parser = ArgumentParser(description='Checkpoint2 Code Generator')
-parser.add_argument('--data', type=str, default='django',
+parser.add_argument('--data', type=str, default='hs',
                     help='Dataset to be used')
 parser.add_argument('--task', type=str, default="ast2json",
                     help='Import or export')
@@ -74,7 +74,7 @@ def write_to_code_file(mode, data, path_to_load, path_to_export, path_raw_code):
         l = json.load(f, encoding='utf8')
     l_code = []
     for i in range(len(l)):
-        print(raw[i])
+        # print(raw[i])
         t = ASTNode.from_dict(l[i], nt,v)
         ast_tree = parse.decode_tree_to_python_ast(t)
         code = astor.to_source(ast_tree)[:-1]
@@ -100,16 +100,16 @@ def main(flag,task,path_load = None, path_write= None, path_raw_code=None):
     #uncomment below for Hearthstone data set
     #train_data, dev_data, test_data = deserialize_from_file("hs.freq3.pre_suf.unary_closure.bin")
     if(task=="ast2json"):
-        
+
         print("----- TRAIN -----")
         write_to_json_file("../data/"+flag+"_dataset/"+flag+".train.json", train_data)
-        
+
         print("----- DEV -----")
         write_to_json_file("../data/"+flag+"_dataset/"+flag+".dev.json", dev_data)
-        
+
         print("----- TEST -----")
         write_to_json_file("../data/"+flag+"_dataset/"+flag+".test.json", test_data)
-        
+
     if(task=="json2ast"):
         print("----- TEST -----")
         write_to_code_file(flag, train_data, path_load, path_write,path_raw_code)

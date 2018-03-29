@@ -84,7 +84,7 @@ class SubTree:
 
     def set_action_type(self,action_type):
         self.action_type=action_type
-        if(self.action_type=="gen"):
+        if(self.action_type=="gen" and self.tokens is None):
             self.tokens=list()
             self.tokens_type=list()
             self.tokens_vocab_index=list()
@@ -283,7 +283,7 @@ class BuildingTree(Tree):
         # set a token, and its child if it was not an eos token
         tkindex = tkindex.item()
         assert(self.current_node.action_type == "gen")
-        end = (tkindex==self.grammar.get_vocab_index("<eos>"))
+        end = (tktype=="vocab" and tkindex==self.grammar.get_vocab_index("<eos>"))
         if(tktype=="vocab"):
             token = self.grammar.get_vocab(tkindex)
             tk_vocab_index = tkindex
@@ -361,7 +361,7 @@ class OracleTree(Tree):
         '''
         tkvocindex,tkcopindex,tkinvocab = self.current_node.get_token_info(self.current_token_index, max_copy_index = len(self.sentence))
         if(self.verbose):
-            print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index])
+            print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index],", copy index ",self.current_node.tokens_query_index[self.current_token_index])
 
         if(tkvocindex==self.grammar.get_vocab_index("<eos>")):
             self.need_to_move=True

@@ -51,7 +51,7 @@ args_model = namedtuple('args', ['numLayer', 'embeddingSourceSize', 'embeddingAp
 net = ASTNet(args=args_model, vocabLengthSource=vocab_length_source,
              vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,
              vocabLengthTarget=vocab_length_target)
-# net.load("../../data/exp/models/hs_5_iter_AdamTrainer.model")
+net.load("../../data/exp/models/hs_4_2018-03-29_lowest_iter_AdamTrainer.model")
 
 
 def train(log_writer):
@@ -66,8 +66,9 @@ def train(log_writer):
         for j in range(k, k+batch_size):
             i = a[j]
             input_s, real_s, goldenTree = sourceDataset.train_index[i], sourceDataset.train_str[i], target_train_dataset[i].copy(
-                verbose=False)
-
+                verbose=True)
+            print(i)
+            print(real_s)
             goldenTree.set_query(real_s)
 
             train_words += goldenTree.length
@@ -154,7 +155,7 @@ for ITER in range(ITERATION):
 
 log_writer.close()
 
-# net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
+net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
 # net.load("../../data/exp/models/"+mode+"_10_iter_AdamTrainer.model")
 # generate result
 trees = []

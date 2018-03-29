@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import datetime
 
-from model1_test import ASTNet
+from model1 import ASTNet
 import source_dataset
 import target_dataset
 
@@ -159,7 +159,7 @@ log_writer.close()
 '''
 #net.load("../../data/exp/models/django_8lowest_iter_AdamTrainer.model")
 
-net.load("../../data/exp/models/hs_19_2018-03-29_lowest_iter_AdamTrainer.model")
+net.load("../../../5-iter.model")
 # generate result
 trees = []
 print("Generating result...")

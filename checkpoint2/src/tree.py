@@ -51,7 +51,7 @@ class SubTree:
 
     #i = self.current_token_index, max_copy_index = len(self.sentence)
     def get_token_info(self,i, max_copy_index):
-        
+
         try:
             assert(i<(len(self.tokens)))
         except Exception:
@@ -217,10 +217,13 @@ class Tree:
 
     def get_parent_time(self):
         # value needed by the model
-        if(self.current_node.action_type=="gen" and self.current_token_index > 0):
-            return self.current_node.time_step
-        else:
-            return self.current_node.parent.time_step
+
+        # if(self.current_node.action_type=="gen" and self.current_token_index > 0):
+        #     return self.current_node.time_step
+        # else:
+        #     return self.current_node.parent.time_step
+
+        return self.current_node.parent.time_step
 
     def has_ended(self):
         # to know if decoding is over (current node is None)

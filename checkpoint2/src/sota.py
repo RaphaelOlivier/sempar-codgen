@@ -22,7 +22,7 @@ parser.add_argument('--iter', type=int, default=20,
 
 args, _ = parser.parse_known_args()
 
-flag_copy = False
+# flag_copy = False
 mode = args.data
 ITERATION = args.iter
 start = time.time()
@@ -165,7 +165,7 @@ test_loss = 0
 for i in range(0, len(target_test_dataset)):
     # print(" ".join(real_s))
     input_s, real_s = sourceDataset.test_index[i], sourceDataset.test_str[i]
-    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=False)
+    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=True)
 
     generated_tree = net.forward_prop(input_s, generated_tree, mode="predict")
     generated_tree.go_to_root()

@@ -307,7 +307,7 @@ class ASTNode(object):
 
                 elif(str(token) in vocab):
                     tokens_type.append("vocab")
-                    tokens_vocab_index.append(vocab[token])
+                    tokens_vocab_index.append(vocab[str(token)])
                     if(str(token) in query):
                         tokens_query_index.append(query.index(str(token)))
                     else:

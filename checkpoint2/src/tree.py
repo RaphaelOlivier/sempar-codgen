@@ -181,6 +181,7 @@ class Tree:
         self.current_token_index = 0
         self.verbose = verbose
         self.current_time_step=0
+        self.recursion = 0
 
 
     def go_to_root(self):
@@ -189,7 +190,9 @@ class Tree:
         self.current_time_step=0
 
     def move(self):
-
+        self.recursion +=1
+        if(self.recursion > 5000):
+            raise("Kill the script : more than 5000 nodes")
         self.current_node.time_step = self.current_time_step
         assert(self.current_node.is_well_built())
 

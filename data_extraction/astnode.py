@@ -320,9 +320,7 @@ class ASTNode(object):
                         tokens_query_index.append(query.index(str(token)))
                         tokens_vocab_index.append(vocab["<unk>"])
                     else:  # word is nowhere : SHOULDN'T HAPPEN BUT DOES
-                        print self.value, "||||||", query
-                        print "Impossible word :", token
-                        print(token)
+                        
 
                         match = re.findall("[A-Z][^A-Z]*", str(token))
                         if len(match) > 1:
@@ -332,7 +330,7 @@ class ASTNode(object):
                             tokens = list(match)
                             
                             #print("here: " + str(tokens) + " " + str(token))
-                            
+                            #MinionCard ["Minion", "Card"]
                             for m in match:
                                 if(str(m) in query):
                                     tokens_type.append("copy")

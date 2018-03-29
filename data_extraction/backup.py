@@ -2,7 +2,7 @@ from collections import namedtuple
 import cPickle
 from collections import Iterable, OrderedDict, defaultdict
 from cStringIO import StringIO
-import re
+
 from lang.util import typename
 
 
@@ -289,9 +289,7 @@ class ASTNode(object):
             if(type(self.value) is not str):
                 tokens = [self.value] + ["<eos>"]
             else:
-                #print(self.value)
                 tokens = self.value.split() + ["<eos>"]
-                #print(tokens)
             tokens_type = []
             tokens_vocab_index = []
             tokens_query_index = []
@@ -322,40 +320,12 @@ class ASTNode(object):
                     else:  # word is nowhere : SHOULDN'T HAPPEN BUT DOES
                         print self.value, "||||||", query
                         print "Impossible word :", token
-                        print(token)
+                        tokens_type.append("vocab")
+                        tokens_query_index.append(None)
+                        tokens_vocab_index.append(vocab["<unk>"])
 
-                        match = re.findall("[A-Z][^A-Z]*", str(token))
-                        if len(match) > 1:
-                            #print(match)
-                            #print(type(match))
-                            
-                            tokens = list(match)
-                            
-                            #print("here: " + str(tokens) + " " + str(token))
-                            
-                            for m in match:
-                                if(str(m) in query):
-                                    tokens_type.append("copy")
-                                    tokens_query_index.append(query.index(str(m)))
-                                    tokens_query_index.append(None)
-                                    tokens_vocab_index.append(vocab["<unk>"])
-                                else:
-                                    tokens_type.append("vocab")
-                                    tokens_query_index.append(None)
-                                    tokens_vocab_index.append(vocab["<unk>"])
-
-                            tokens.append("<eos>")
-                        else:
-                            tokens_type.append("vocab")
-                            tokens_query_index.append(None)
-                            tokens_vocab_index.append(vocab["<unk>"])
-                        
-                        
-            #print("tokens: " + str(tokens))
             d["tokens"] = tokens
-            #print("dtokens: " + str(d["tokens"]))
             d["tokens_type"] = tokens_type
-            #print("dtokens type: " + str(d["tokens_type"]))
             d["tokens_query_index"] = tokens_query_index
             d["tokens_vocab_index"] = tokens_vocab_index
 

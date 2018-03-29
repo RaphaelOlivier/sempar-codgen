@@ -411,7 +411,9 @@ class ASTNet:
 						probs_vocab[unk]=copy_probs[best_copy_unk]
 
 				pred_token = np.argmax(probs_vocab)
+				#print("pred: " + str(pred_token))
 				if(pred_token==unk):
+					#print(best_copy_unk)
 					tree.set_token("copy", best_copy_unk)
 				else:
 					tree.set_token("vocab",pred_token)

@@ -49,9 +49,16 @@ class SubTree:
         return self.children != None and ((self.action_type == "apply" and self.rule != None) or (self.action_type == "gen" and len(self.tokens)>0))
 
 
+    #i = self.current_token_index, max_copy_index = len(self.sentence)
     def get_token_info(self,i, max_copy_index):
-        # print(i,len(self.tokens))
-        assert(i<len(self.tokens))
+        
+        try:
+            assert(i<(len(self.tokens)))
+        except Exception:
+            print(self.tokens)
+            print(i,len(self.tokens))
+        #print(self.tokens)
+        #print(i,len(self.tokens))
         token = self.tokens[i]
         tktype = self.tokens_type[i]
         tkvocindex = self.tokens_vocab_index[i]
@@ -338,9 +345,13 @@ class OracleTree(Tree):
         return t
 
     def get_oracle_token(self):
-        #print(self.current_node)
         # returns the correct token for loss computation in the model
         assert(self.current_node.action_type == "gen")
+        '''
+        print("sentence: " + str(self.sentence))
+        print("length sentence: " + str(len(self.sentence)))
+        print("token index: " + str(self.current_token_index))
+        '''
         tkvocindex,tkcopindex,tkinvocab = self.current_node.get_token_info(self.current_token_index, max_copy_index = len(self.sentence))
         if(self.verbose):
             print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index])

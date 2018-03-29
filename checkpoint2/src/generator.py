@@ -4,6 +4,7 @@ import random
 import math
 import sys
 import numpy as np
+import datetime
 
 from model1_test import ASTNet
 import source_dataset
@@ -158,7 +159,7 @@ log_writer.close()
 '''
 #net.load("../../data/exp/models/django_8lowest_iter_AdamTrainer.model")
 
-net.load("../../data/exp/models/hs_0_2018-03-27_lowest_iter_AdamTrainer.model")
+net.load("../../data/exp/models/hs_19_2018-03-29_lowest_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")
@@ -168,14 +169,14 @@ test_loss = 0
 for i in range(0, len(target_test_dataset)):
     # print(" ".join(real_s))
     input_s, real_s = sourceDataset.test_index[i], sourceDataset.test_str[i]
-    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=False)
+    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=True)
 
     generated_tree = net.forward_prop(input_s, generated_tree, mode="predict")
     generated_tree.go_to_root()
     trees.append(generated_tree)
 
 print("Writing result...")
-
+today = datetime.datetime.now().strftime("%Y-%m-%d")
 #path = "../../data/exp/results/test_"+mode+"_" + str(ITERATION)+"_iter.json"
-suffix = str(ITERATION)+"_iter"
+suffix = str(today) + "_" + str(ITERATION)+"_iter"
 targetDataset.export(trees, suffix)

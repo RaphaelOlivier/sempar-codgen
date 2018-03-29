@@ -290,6 +290,7 @@ class BuildingTree(Tree):
         if(self.grammar.get_node_type(self.current_node.node_type)=='int' and not end): # we need a number
             #print(self.current_node.node_type)
             try:
+                print("here: " + str(token) + " node type: " + str(self.grammar.get_node_type(self.current_node.node_type)))
                 token = int(token)
             except:
                 token=0

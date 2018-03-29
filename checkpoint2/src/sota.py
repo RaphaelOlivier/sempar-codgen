@@ -37,7 +37,7 @@ vocab_length_source = sourceDataset.vocab_length
 vocab_length_target = targetIndexer.vocab_length
 vocab_length_nodes = targetIndexer.node_length
 vocab_length_rules = targetIndexer.rule_length
-
+today = datetime.datetime.now().strftime("%Y-%m-%d")
 # Reading data
 
 # start Dynet and define trainer
@@ -46,7 +46,7 @@ if mode == "django":
     modulo = 100
 
 args_model = namedtuple('args', ['numLayer', 'embeddingSourceSize', 'embeddingApplySize', 'embeddingGenSize', 'embeddingNodeSize',
-                                 'hiddenSize', 'attSize', 'pointerSize', 'dropout', 'learningRate'])(1, 128, 128, 128, 64, 256, 50, 50, 0.0, 0.001)
+                                 'hiddenSize', 'attSize', 'pointerSize', 'dropout', 'learningRate'])(1, 128, 128, 128, 64, 256, 50, 50, 0.2, 0.001)
 
 net = ASTNet(args=args_model, vocabLengthSource=vocab_length_source,
              vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,
@@ -122,13 +122,12 @@ def train(log_writer):
 
 
 # Training
-log_writer = open("../../data/exp/log/"+str(ITERATION)+"_iter_"+mode+".log", 'w')
+log_writer = open("../../data/exp/log/" +str(ITERATION)+"_iter_"+mode+ "_"+str(today)+".log", 'w')
 # net.load("../../data/exp/models/hs_4lowest_iter_AdamTrainer.model")
 print("iteration: " + str(ITERATION))
 lowest_dev_loss = float("inf")
 successive_decreasing_counter = 0
 lowest_dev_perplexity = float("inf")
-today = datetime.datetime.now().strftime("%Y-%m-%d")
 for ITER in range(ITERATION):
     # Perform training
     dev_loss_per_word, dev_perplexity = train(log_writer)

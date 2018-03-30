@@ -67,6 +67,6 @@ with open(goldenTest, "r", encoding='utf-8', errors='ignore') as s_file, open(pr
         candidate = tokenize_for_bleu_eval(predicted_line[:-1])
         print(reference)
         print(candidate)
-        cum_score = cum_score + sentence_bleu([reference],candidate)#, smoothing_function=sm.method3)  # cumulative score blue
-    total_score = cum_score/total
+        cum_score = cum_score + sentence_bleu(reference,candidate)#, smoothing_function=sm.method3)  # cumulative score blue
+    total_score = cum_score*100.0/total
     print('BLEU score (percent): %.2f' % (total_score))

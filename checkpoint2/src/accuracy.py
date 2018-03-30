@@ -5,7 +5,7 @@ import random
 import math
 import sys
 import argparse
-from nltk.translate.bleu_score import sentence_bleu
+from nltk.translate.bleu_score import sentence_bleu, corpus_bleu, SmoothingFunction
 import re
 from collections import Counter, defaultdict
 import numpy as np
@@ -34,8 +34,8 @@ mode = args.data
 predicted = args.predicted_path
 
 if mode == 'hs':
-    goldenTest = "../../data/hs_dataset/hs.test.code"
-    #predicted = "../../data/result.code"
+    goldenTest = "../../data/hs_dataset/hs.test_new.code"
+    #predicted = "../../data/exp/results_new/test_hs_10_iter_2018-03-30.result"
 
 if mode == 'django':
     goldenTest = "../../data/django_dataset/django.test.code"
@@ -60,12 +60,13 @@ with open(goldenTest, "r", encoding='utf-8', errors='ignore') as s_file, open(pr
 # calculate bleu score
 score = 0
 cum_score = 0
+sm = SmoothingFunction()
 with open(goldenTest, "r", encoding='utf-8', errors='ignore') as s_file, open(predicted, "r", encoding='utf-8', errors='ignore') as t_file:
     for golden_line, predicted_line in zip(s_file, t_file):
         reference = tokenize_for_bleu_eval(golden_line[:-1])
         candidate = tokenize_for_bleu_eval(predicted_line[:-1])
-        #print(reference)
-        #print(candidate)
-        cum_score = cum_score + sentence_bleu(reference,candidate)  # cumulative score blue
-    total_score = cum_score*100.0/total
+        print(reference)
+        print(candidate)
+        cum_score = cum_score + sentence_bleu([reference],candidate)#, smoothing_function=sm.method3)  # cumulative score blue
+    total_score = cum_score/total
     print('BLEU score (percent): %.2f' % (total_score))

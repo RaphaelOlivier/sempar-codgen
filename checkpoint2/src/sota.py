@@ -47,7 +47,7 @@ if mode == "django":
 
 args_model = namedtuple('args', ['numLayer', 'embeddingSourceSize', 'embeddingApplySize', 'embeddingGenSize',
                         'embeddingNodeSize','hiddenSize', 'attSize', 'pointerSize', 'dropout',
-                         'learningRate'])(1, 128, 128, 128, 64, 256, 50, 50, 0.4, 0.001)
+                         'learningRate'])(1, 128, 128, 128, 64, 256, 50, 50, 0.3, 0.001)
 
 net = ASTNet(args=args_model, vocabLengthSource=vocab_length_source,
              vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,
@@ -67,9 +67,9 @@ def train(log_writer):
         for j in range(k, k+batch_size):
             i = a[j]
             input_s, real_s, goldenTree = sourceDataset.train_index[i], sourceDataset.train_str[i], target_train_dataset[i].copy(
-                verbose=True)
+                verbose=False)
             # print(i)
-            print(" ".join(real_s))
+            #print(" ".join(real_s))
             goldenTree.set_query(real_s)
 
             train_words += goldenTree.length
@@ -151,9 +151,9 @@ for ITER in range(ITERATION):
         print("new learning rate: " + str(net.get_learning_rate()))
         successive_decreasing_counter += 1
 
-    if successive_decreasing_counter == 3:
-        print("Early stopping...")
-        break
+    #if successive_decreasing_counter == 3:
+    #    print("Early stopping...")
+    #    break
 
 log_writer.close()
 
@@ -167,8 +167,8 @@ test_loss = 0
 for i in range(0, len(target_test_dataset)):
 
     input_s, real_s = sourceDataset.test_index[i], sourceDataset.test_str[i]
-    print(" ".join(real_s))
-    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=True)
+    #print(" ".join(real_s))
+    generated_tree = tree.BuildingTree(targetDataset.indexer, real_s, verbose=False)
 
     generated_tree = net.forward_prop(input_s, generated_tree, mode="predict")
     generated_tree.go_to_root()

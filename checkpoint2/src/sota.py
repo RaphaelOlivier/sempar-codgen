@@ -67,9 +67,9 @@ def train(log_writer):
         for j in range(k, k+batch_size):
             i = a[j]
             input_s, real_s, goldenTree = sourceDataset.train_index[i], sourceDataset.train_str[i], target_train_dataset[i].copy(
-                verbose=False)
+                verbose=True)
             # print(i)
-            # print(real_s)
+            print(" ".join(real_s))
             goldenTree.set_query(real_s)
 
             train_words += goldenTree.length

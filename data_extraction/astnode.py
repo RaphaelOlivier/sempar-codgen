@@ -289,18 +289,21 @@ class ASTNode(object):
             if isinstance(self.value, unicode):
                 self.value = self.value.encode('utf-8')
             if not isinstance(self.value, str):
-                tokens = [self.value] + ["<eos>"]
+                tokens_temp = [self.value]
             else:
                 #print(self.value)
-                tokens = self.value.split() + ["<eos>"]
+                tokens_temp = self.value.split()
                 #print(tokens)
+            print(tokens_temp)
+            tokens=[]
             tokens_type = []
             tokens_vocab_index = []
             tokens_query_index = []
-            for token in tokens:
+            for token in tokens_temp:
                 if(token in vocab):
                     tokens_type.append("vocab")
                     tokens_vocab_index.append(vocab[token])
+                    tokens.append(token)
 
                     if(str(token) in query):
                         tokens_query_index.append(query.index(str(token)))
@@ -312,6 +315,7 @@ class ASTNode(object):
                 elif(str(token) in vocab):
                     tokens_type.append("vocab")
                     tokens_vocab_index.append(vocab[str(token)])
+                    tokens.append(token)
                     if(str(token) in query):
                         tokens_query_index.append(query.index(str(token)))
                     elif(str(token).lower() in lower_query):
@@ -321,6 +325,7 @@ class ASTNode(object):
                 elif(str(token).lower() in lower_vocab):
                     tokens_type.append("vocab")
                     tokens_vocab_index.append(lower_vocab[str(token).lower()])
+                    tokens.append(token)
                     if(str(token) in query):
                         tokens_query_index.append(query.index(str(token)))
                     elif(str(token).lower() in lower_query):
@@ -333,21 +338,24 @@ class ASTNode(object):
                         tokens_type.append("copy")
                         tokens_query_index.append(query.index(str(token)))
                         tokens_vocab_index.append(vocab["<unk>"])
+                        tokens.append(token)
                     elif(str(token).lower() in lower_query):
                         tokens_type.append("copy")
                         tokens_query_index.append(lower_query.index(str(token).lower()))
                         tokens_vocab_index.append(vocab["<unk>"])
+                        tokens.append(token)
                     else:  # word is nowhere : SHOULDN'T HAPPEN BUT DOES
                         match = re.findall("[A-Z][^A-Z]*", str(token))
                         if len(match) > 1:
                             #print(match)
                             #print(type(match))
 
-                            tokens = list(match)
+                            match = list(match)
 
                             #print("here: " + str(tokens) + " " + str(token))
                             #MinionCard ["Minion", "Card"]
                             for m in match:
+                                tokens.append(m)
                                 if(m in vocab):
                                     tokens_type.append("vocab")
                                     tokens_vocab_index.append(vocab[m])
@@ -359,15 +367,6 @@ class ASTNode(object):
                                     else:
                                         tokens_query_index.append(None)
 
-                                elif(m in vocab):
-                                    tokens_type.append("vocab")
-                                    tokens_vocab_index.append(vocab[m])
-                                    if(m in query):
-                                        tokens_query_index.append(query.index(m))
-                                    elif(m.lower() in lower_query):
-                                        tokens_query_index.append(lower_query.index(m.lower()))
-                                    else:
-                                        tokens_query_index.append(None)
                                 elif(m.lower() in lower_vocab):
                                     tokens_type.append("vocab")
                                     tokens_vocab_index.append(lower_vocab[m.lower()])
@@ -377,15 +376,38 @@ class ASTNode(object):
                                         tokens_query_index.append(lower_query.index(m.lower()))
                                     else:
                                         tokens_query_index.append(None)
+                                else:
+                                    if(m in query):
+                                        tokens_type.append("copy")
+                                        tokens_query_index.append(query.index(m))
+                                        tokens_vocab_index.append(vocab["<unk>"])
+                                    elif(m.lower() in lower_query):
+                                        tokens_type.append("copy")
+                                        tokens_query_index.append(lower_query.index(m.lower()))
+                                        tokens_vocab_index.append(vocab["<unk>"])
+                                    else:
+                                        tokens_type.append("vocab")
+                                        tokens_query_index.append(None)
+                                        tokens_vocab_index.append(vocab["<unk>"])
 
-                            tokens.append("<eos>")
                         else:
+                            tokens.append(token)
                             tokens_type.append("vocab")
                             tokens_query_index.append(None)
                             tokens_vocab_index.append(vocab["<unk>"])
+            tokens.append("<eos>")
+            tokens_query_index.append(None)
+            tokens_vocab_index.append(vocab["<eos>"])
+            tokens_type.append("vocab")
+
             print tokens
             print tokens_vocab_index
-
+            print tokens_query_index
+            print tokens_type
+            assert(len(tokens)==len(tokens_vocab_index))
+            assert(len(tokens)==len(tokens_query_index))
+            assert(len(tokens)==len(tokens_type))
+            assert(tokens_vocab_index[-1]==2)
             #print("tokens: " + str(tokens))
             d["tokens"] = tokens
             #print("dtokens: " + str(d["tokens"]))

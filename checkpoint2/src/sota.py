@@ -52,7 +52,7 @@ args_model = namedtuple('args', ['numLayer', 'embeddingSourceSize', 'embeddingAp
 net = ASTNet(args=args_model, vocabLengthSource=vocab_length_source,
              vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,
              vocabLengthTarget=vocab_length_target)
-# net.load("../../data/exp/models/hs_8_iter_AdadeltaTrainer.model")
+# net.load("../../data/exp/models/hs_15_iter_AdamTrainer.model")
 
 
 def train(log_writer):
@@ -140,7 +140,7 @@ for ITER in range(ITERATION):
         print("Saving lowest dev perplexity: " +
               str(lowest_dev_perplexity) + " at iteration: " + str(ITER) + "...")
         net.save("../../data/exp/models/"+mode+"_"+str(ITER) +"_"+str(today) +
-                 "_lowest_iter_AdadeltaTrainer.model")
+                 "_lowest_iter_AdamTrainer.model")
         print("----------------------------------")
     if lowest_dev_loss > dev_loss_per_word:
         lowest_dev_loss = dev_loss_per_word
@@ -157,7 +157,7 @@ for ITER in range(ITERATION):
 
 log_writer.close()
 
-net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdadeltaTrainer.model")
+net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")

@@ -54,7 +54,7 @@ class ASTNet:
 
 		# adding paramteters to the AST Neural Network
 		self.attentionSource = self.model.add_parameters((self.attSize, self.hiddenSize * 2))
-		self.attentionTarget = self.model.add_parameters((self.attSize, self.numLayer*self.hiddenSize * 2))
+		self.attentionTarget = self.model.add_parameters((self.attSize, self.numLayer*self.hiddenSize))
 		self.attentionParameter = self.model.add_parameters((1, self.attSize))
 
 		self.w_selection_gen_softmax = self.model.add_parameters((2, self.hiddenSize))
@@ -133,7 +133,7 @@ class ASTNet:
 
 		if(mode == "predict"):
 			self.disable_dropout()
-			output_sentence = self.decode_to_prediction(encoded,output_tree, 2*len(input_sentence))
+			output_sentence = self.decode_to_prediction(encoded,output_tree)
 		return output_sentence
 
 	def set_dropout(self):
@@ -180,8 +180,7 @@ class ASTNet:
 
 		w1_att_tgt = dy.parameter(self.attentionTarget)
 		w2_att = dy.parameter(self.attentionParameter)
-		target_output_embedding = dy.concatenate(list(current_state.s()))
-		a_t = dy.transpose(w2_att * dy.tanh(dy.colwise_add(fixed_attentional_component, w1_att_tgt * target_output_embedding)))
+		a_t = dy.transpose(w2_att * dy.tanh(dy.colwise_add(fixed_attentional_component, w1_att_tgt * current_state.output())))
 		alignment = dy.softmax(a_t)
 		context_vector = src_output_matrix * alignment
 
@@ -245,7 +244,7 @@ class ASTNet:
 		# no parent time
 		frontier_node_type_embedding = self.nodeTypeLookup[goldenTree.get_node_type()]
 		parent_action = dy.inputTensor(np.zeros(self.hiddenSize+self.embeddingApplySize))
-		current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
+		current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding, dropout=True)
 		current_state_output = dy.dropout(current_state.output(),self.dropout)
 		decoder_states.append(current_state)
 		# action_type = apply
@@ -262,7 +261,7 @@ class ASTNet:
 			parent_time =  goldenTree.get_parent_time()
 			frontier_node_type_embedding = self.nodeTypeLookup[goldenTree.get_node_type()]
 			parent_action = self.parent_feed(decoder_states[parent_time].output(), decoder_actions[parent_time])
-			current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
+			current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding, dropout=True)
 			decoder_states.append(current_state)
 			current_state_output = current_state.output()
 			current_state_output = dy.dropout(current_state_output,self.dropout)
@@ -304,7 +303,7 @@ class ASTNet:
 
 		return dy.esum(losses)
 
-	def decode_to_prediction(self, encoded_vectors, tree, max_length):
+	def decode_to_prediction(self, encoded_vectors, tree):
 		# initializing decoder state
 		unk=1
 		eos=2
@@ -339,7 +338,7 @@ class ASTNet:
 		# no parent time
 		frontier_node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
 		parent_action = dy.inputTensor(np.zeros(self.hiddenSize+self.embeddingApplySize))
-		current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
+		current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding, dropout=False)
 		decoder_states.append(current_state)
 		current_state_output = current_state.output()
 		# action_type = "apply"
@@ -354,12 +353,10 @@ class ASTNet:
 			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 			parent_time =  tree.get_parent_time()
 			print(parent_time)
-			prev_action_embedding = dy.vecInput(self.embeddingApplySize)
 			node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
 
-
 			parent_action = self.parent_feed(decoder_states[parent_time].output(), decoder_actions[parent_time])
-			current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, node_type_embedding)
+			current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, node_type_embedding, dropout=False)
 			current_state_output = current_state.output()
 			decoder_states.append(current_state)
 			action_type = tree.get_action_type()  # assuming the tree module manages to get the node type
@@ -380,12 +377,10 @@ class ASTNet:
 				else:
 					selection_prob = np.array([1,0])
 
-
 				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state_output, context_vector, wg, bg)  # affine tf over gen vocab
 				# print(selection_prob[0],dy.softmax(current_gen_action_embedding).value())
 				probs_vocab = selection_prob[0] * np.array(dy.softmax(current_gen_action_embedding).value())
 				probs_vocab[unk]=0
-
 
 				if(self.flag_copy):
 					copy_probs = selection_prob[1] * np.array(dy.softmax(self.get_gen_copy_embedding(current_state_output, context_vector, encoded_states, wp1, bp1, wp2, bp2)).value())
@@ -397,13 +392,6 @@ class ASTNet:
 						best_copy_unk = source_unk[best_copy_unk]
 						probs_vocab[unk]=copy_probs[best_copy_unk]
 				pred_token = tree.pick_and_get_token(probs_vocab, best_copy_unk)
-				# pred_token = np.argmax(probs_vocab)
-				# print("pred: " + str(pred_token))
-				# if(pred_token==unk):
-					#print(best_copy_unk)
-					# tree.set_token("copy", best_copy_unk)
-				# else:
-				# 	tree.set_token("vocab",pred_token)
 
 				prev_action_embedding = self.gentokenLookup[pred_token]
 				decoder_actions.append(prev_action_embedding)

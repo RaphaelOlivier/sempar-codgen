@@ -318,10 +318,18 @@ class BuildingTree(Tree):
         if(self.current_token_index == 0 and self.grammar.get_node_type(self.current_node.node_type)=='int'):
             return self.pick_and_get_integer(probs,best_unk)
 
-        best_unk=best_unk.item()
-        tkindexvocab = np.argmax(probs).item()
         unk = self.grammar.get_vocab_index("<unk>")
         eos = self.grammar.get_vocab_index("<eos>")
+        best_unk=best_unk.item()
+        if(self.current_token_index == 0):
+            probs[eos]=0
+        if(self.current_token_index >= 50):
+            probs[eos]=1
+        if(self.current_token_index > 0):
+            prev = self.current_node.tokens_vocab_index[self.current_token_index-1]
+            if prev != unk:
+                probs[prev]=0
+        tkindexvocab = np.argmax(probs).item()
         assert(self.current_node.action_type == "gen")
         end = (tkindexvocab==eos)
         if(tkindexvocab != unk):

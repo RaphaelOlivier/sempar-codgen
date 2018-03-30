@@ -14,7 +14,7 @@ from collections import Counter, defaultdict
 class VocabIndexer:
     def __init__(self):
         self.building = True
-        self.vocab = {"<unk>":0,"<eos>":1}
+        self.vocab = {"<unk>":0,"<eos_source>":1}
         self.length = 2
         self.id_to_word = None
 
@@ -59,20 +59,21 @@ class SourceDataset:
         self.indexer.build()
 
         self.train_str, self.train_index = self.read_dataset(train_source_file)
-        self.indexer.isBuilt()
+        # self.indexer.isBuilt()
 
         print("Source vocabulary size: {}".format(self.vocab_length))
 
         self.dev_str, self.dev_index = self.read_dataset(dev_source_file)
         self.test_str, self.test_index = self.read_dataset(test_source_file)
-
+        print("Source vocabulary size: {}".format(self.vocab_length))
     def read_dataset(self,source_file):
         data_index = []
         data_str = []
         with open(source_file, "r", encoding='utf-8', errors='ignore') as s_file:
             for source_line in s_file:
-                sent = source_line.strip().split(" ") + ["<eos>"]
+                sent = source_line.strip().split(" ") + ["<eos_source>"]
                 sent_int = [self.indexer[x] for x in sent]
+                # print(sent,sent_int)
                 data_str.append(sent)
                 data_index.append(sent_int)
         return data_str, data_index

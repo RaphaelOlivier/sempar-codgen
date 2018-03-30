@@ -313,7 +313,7 @@ def tokenize_code(code):
 
 def tokenize_code_adv(code, breakCamelStr=False):
     code = code.replace("'", "")
-    print(code)
+    # print(code)
     token_stream = generate_tokens(StringIO(code).readline)
     tokens = []
     indent_level = 0

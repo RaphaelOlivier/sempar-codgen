@@ -36,7 +36,8 @@ class ASTNet:
 
 
 		self.model = dy.ParameterCollection()
-		self.trainer = dy.AdamTrainer(self.model, alpha=self.learningRate)
+		#self.trainer = dy.AdamTrainer(self.model, alpha=self.learningRate)
+		self.trainer = dy.AdadeltaTrainer(self.model)
 
 		# source lookup
 		self.sourceLookup = self.model.add_lookup_parameters((self.vocabLengthSource, self.embeddingSourceSize))
@@ -69,8 +70,8 @@ class ASTNet:
 		self.w_pointer_out = self.model.add_parameters((1, self.pointerSize))
 		self.b_pointer_out = self.model.add_parameters((1))
 		# initializing the encoder and decoder
-		self.forward_encoder = dy.LSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.model)
-		self.backward_encoder = dy.LSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.model)
+		self.forward_encoder = dy.VanillaLSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.model)
+		self.backward_encoder = dy.VanillaLSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.model)
 
 		# check this
 		# embedding size + (previous action embedding + context vector + node type mebedding + parnnet feeding )
@@ -80,7 +81,7 @@ class ASTNet:
 
 
 	def encoder(self, nl):
-		# nl - natural langauge
+		# nl - natural language
 		# forward LSTM
 		forward_hidden_state = self.forward_encoder.initial_state()
 		forward_vectors = []
@@ -161,7 +162,7 @@ class ASTNet:
 
 	def reduce_learning_rate(self, factor):
 		self.learningRate = self.learningRate/factor
-		self.trainer.learning_rate = self.trainer.learning_rate/factor
+		# self.trainer.learning_rate = self.trainer.learning_rate/factor
 
 	def parent_feed(self, parent_action_hidden_state, parent_action_embedding ):
 
@@ -190,9 +191,6 @@ class ASTNet:
 
 		copy_vectors = []
 		for encoded_state in dy.transpose(encoded_states):
-			#print(len(encoded_state.value()))
-			#print(len(current_state.output().value()))
-			#print(len(context_vector.value()))
 			copy_input = dy.concatenate([encoded_state, current_state_output, context_vector])
 			copy_hidden = dy.tanh(dy.affine_transform([b1, w1, copy_input]))
 			copy_output = dy.affine_transform([b2, w2, copy_hidden])
@@ -205,7 +203,6 @@ class ASTNet:
 		rule_lookup = dy.parameter(self.actionRuleLookup)
 		s = dy.affine_transform([b, w, current_state_output])
 		g = dy.tanh(s)
-		# print(self.actionRuleLookup,g.dim())
 		s = dy.transpose(rule_lookup) * g
 		return s
 
@@ -222,8 +219,6 @@ class ASTNet:
 		# initializing decoder state
 		# src_output = encoded_vectors[-1]
 
-		# current_state = self.decoder.initial_state().set_s([src_output, dy.tanh(src_output)])
-		#print("hey")
 		sel_gen = dy.parameter(self.w_selection_gen_softmax)
 		wr = dy.parameter(self.w_out_rule) # the weight matrix
 		br = dy.parameter(self.b_out_rule)
@@ -256,7 +251,6 @@ class ASTNet:
 		# action_type = apply
 		current_apply_action_embedding = self.get_apply_action_embedding(current_state_output, wr, br)  # affine tf
 		golden_next_rule = goldenTree.get_oracle_rule()
-		#print(len(current_apply_action_embedding.value()),golden_next_rule)
 		item_loss = dy.pickneglogsoftmax(current_apply_action_embedding, golden_next_rule)
 		prev_action_embedding = self.actionRuleLookup[golden_next_rule]
 		decoder_actions.append(prev_action_embedding)
@@ -266,7 +260,6 @@ class ASTNet:
 
 			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 			parent_time =  goldenTree.get_parent_time()
-			# print(parent_time)
 			frontier_node_type_embedding = self.nodeTypeLookup[goldenTree.get_node_type()]
 			parent_action = self.parent_feed(decoder_states[parent_time].output(), decoder_actions[parent_time])
 			current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding)
@@ -274,13 +267,12 @@ class ASTNet:
 			current_state_output = current_state.output()
 			current_state_output = dy.dropout(current_state_output,self.dropout)
 			action_type = goldenTree.get_action_type()  # assuming the tree module manages to get the node type
-			#print("action type :",action_type)
+
 			if action_type == "apply":
 
 				current_apply_action_embedding = self.get_apply_action_embedding(current_state_output, wr, br)  # affine tf
 				golden_next_rule = goldenTree.get_oracle_rule()
 				item_loss = dy.pickneglogsoftmax(current_apply_action_embedding, golden_next_rule)
-				#print(len(current_apply_action_embedding.value()),golden_next_rule)
 				prev_action_embedding = self.actionRuleLookup[golden_next_rule]
 				decoder_actions.append(prev_action_embedding)
 				losses.append(item_loss)
@@ -294,13 +286,11 @@ class ASTNet:
 					selection_prob = dy.inputTensor([1,0])
 
 				goldentoken_vocab, goldentoken_copy, in_vocab = goldenTree.get_oracle_token()
-				# print(goldentoken_vocab, goldentoken_copy, in_vocab)
 				# words generated from vocabulary
 				current_gen_action_embedding = self.get_gen_vocab_embedding(current_state_output, context_vector, wg, bg)  # affine tf over gen vocab
 
 				item_likelihood += selection_prob[0] * dy.softmax(current_gen_action_embedding)[goldentoken_vocab]
 
-				#print(len(current_gen_action_embedding.value()),goldentoken_vocab)
 				prev_action_embedding = self.gentokenLookup[goldentoken_vocab]
 				decoder_actions.append(prev_action_embedding)
 
@@ -308,7 +298,6 @@ class ASTNet:
 				if(goldentoken_copy is not None):
 
 					copy_vals = self.get_gen_copy_embedding(current_state_output, context_vector, encoded_states, wp1, bp1, wp2, bp2)
-					# print(len(copy_probs.value()),goldentoken_copy)
 					item_likelihood += selection_prob[1] * dy.softmax(copy_vals)[goldentoken_copy]
 
 				losses.append(-dy.log(item_likelihood))
@@ -321,7 +310,6 @@ class ASTNet:
 		eos=2
 		source_vocab_index = tree.get_query_vocab_index()
 		source_unk = np.array([x for x, t in enumerate(source_vocab_index) if t == unk])
-
 		wr = dy.parameter(self.w_out_rule) # the weight matrix
 		br = dy.parameter(self.b_out_rule)
 		wg = dy.parameter(self.w_out_vocab) # the weight matrix
@@ -365,7 +353,7 @@ class ASTNet:
 
 			context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 			parent_time =  tree.get_parent_time()
-			# print(parent_time)
+			print(parent_time)
 			prev_action_embedding = dy.vecInput(self.embeddingApplySize)
 			node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
 
@@ -386,7 +374,6 @@ class ASTNet:
 
 			if action_type == "gen":
 
-				pred_token = ''
 				# for generating from the vocabulary
 				if(self.flag_copy):
 					selection_prob = dy.softmax(sel_gen * current_state_output).value()
@@ -409,14 +396,14 @@ class ASTNet:
 						best_copy_unk = np.argmax(copy_probs[source_unk])
 						best_copy_unk = source_unk[best_copy_unk]
 						probs_vocab[unk]=copy_probs[best_copy_unk]
-
-				pred_token = np.argmax(probs_vocab)
-				print("pred: " + str(pred_token))
-				if(pred_token==unk):
+				pred_token = tree.pick_and_get_token(probs_vocab, best_copy_unk)
+				# pred_token = np.argmax(probs_vocab)
+				# print("pred: " + str(pred_token))
+				# if(pred_token==unk):
 					#print(best_copy_unk)
-					tree.set_token("copy", best_copy_unk)
-				else:
-					tree.set_token("vocab",pred_token)
+					# tree.set_token("copy", best_copy_unk)
+				# else:
+				# 	tree.set_token("vocab",pred_token)
 
 				prev_action_embedding = self.gentokenLookup[pred_token]
 				decoder_actions.append(prev_action_embedding)

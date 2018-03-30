@@ -265,7 +265,7 @@ class ASTNode(object):
 
         return new_tree
 
-    def to_dict(self, query, grammar, vocab):
+    def to_dict(self, query,lower_query, grammar, vocab,lower_vocab):
         # print(vocab)
         d = dict()
         node_type_id = grammar.get_node_type_id(self)
@@ -281,12 +281,14 @@ class ASTNode(object):
 
             children_dicts = []
             for child in self.children:
-                children_dicts.append(child.to_dict(query, grammar, vocab))
+                children_dicts.append(child.to_dict(query,lower_query, grammar, vocab,lower_vocab))
             d["children"] = children_dicts
         else:
             d["action_type"] = "gen"
-            assert(type(self) is not Rule)
-            if(type(self.value) is not str):
+            assert(not isinstance(self,Rule))
+            if isinstance(self.value, unicode):
+                self.value = self.value.encode('utf-8')
+            if not isinstance(self.value, str):
                 tokens = [self.value] + ["<eos>"]
             else:
                 #print(self.value)
@@ -302,6 +304,8 @@ class ASTNode(object):
 
                     if(str(token) in query):
                         tokens_query_index.append(query.index(str(token)))
+                    elif(str(token).lower() in lower_query):
+                        tokens_query_index.append(lower_query.index(str(token).lower()))
                     else:
                         tokens_query_index.append(None)
 
@@ -310,45 +314,78 @@ class ASTNode(object):
                     tokens_vocab_index.append(vocab[str(token)])
                     if(str(token) in query):
                         tokens_query_index.append(query.index(str(token)))
+                    elif(str(token).lower() in lower_query):
+                        tokens_query_index.append(lower_query.index(str(token).lower()))
                     else:
                         tokens_query_index.append(None)
-
+                elif(str(token).lower() in lower_vocab):
+                    tokens_type.append("vocab")
+                    tokens_vocab_index.append(lower_vocab[str(token).lower()])
+                    if(str(token) in query):
+                        tokens_query_index.append(query.index(str(token)))
+                    elif(str(token).lower() in lower_query):
+                        tokens_query_index.append(lower_query.index(str(token).lower()))
+                    else:
+                        tokens_query_index.append(None)
                 else:
                     # print(token,query)
                     if(str(token) in query):
                         tokens_type.append("copy")
                         tokens_query_index.append(query.index(str(token)))
                         tokens_vocab_index.append(vocab["<unk>"])
+                    elif(str(token).lower() in lower_query):
+                        tokens_type.append("copy")
+                        tokens_query_index.append(lower_query.index(str(token).lower()))
+                        tokens_vocab_index.append(vocab["<unk>"])
                     else:  # word is nowhere : SHOULDN'T HAPPEN BUT DOES
-                        
-
                         match = re.findall("[A-Z][^A-Z]*", str(token))
                         if len(match) > 1:
                             #print(match)
                             #print(type(match))
-                            
+
                             tokens = list(match)
-                            
+
                             #print("here: " + str(tokens) + " " + str(token))
                             #MinionCard ["Minion", "Card"]
                             for m in match:
-                                if(str(m) in query):
-                                    tokens_type.append("copy")
-                                    tokens_query_index.append(query.index(str(m)))
-                                    tokens_query_index.append(None)
-                                    tokens_vocab_index.append(vocab["<unk>"])
-                                else:
+                                if(m in vocab):
                                     tokens_type.append("vocab")
-                                    tokens_query_index.append(None)
-                                    tokens_vocab_index.append(vocab["<unk>"])
+                                    tokens_vocab_index.append(vocab[m])
+
+                                    if(m in query):
+                                        tokens_query_index.append(query.index(m))
+                                    elif(m.lower() in lower_query):
+                                        tokens_query_index.append(lower_query.index(m.lower()))
+                                    else:
+                                        tokens_query_index.append(None)
+
+                                elif(m in vocab):
+                                    tokens_type.append("vocab")
+                                    tokens_vocab_index.append(vocab[m])
+                                    if(m in query):
+                                        tokens_query_index.append(query.index(m))
+                                    elif(m.lower() in lower_query):
+                                        tokens_query_index.append(lower_query.index(m.lower()))
+                                    else:
+                                        tokens_query_index.append(None)
+                                elif(m.lower() in lower_vocab):
+                                    tokens_type.append("vocab")
+                                    tokens_vocab_index.append(lower_vocab[m.lower()])
+                                    if(m in query):
+                                        tokens_query_index.append(query.index(m))
+                                    elif(m.lower() in lower_query):
+                                        tokens_query_index.append(lower_query.index(m.lower()))
+                                    else:
+                                        tokens_query_index.append(None)
 
                             tokens.append("<eos>")
                         else:
                             tokens_type.append("vocab")
                             tokens_query_index.append(None)
                             tokens_vocab_index.append(vocab["<unk>"])
-                        
-                        
+            print tokens
+            print tokens_vocab_index
+
             #print("tokens: " + str(tokens))
             d["tokens"] = tokens
             #print("dtokens: " + str(d["tokens"]))
@@ -375,6 +412,7 @@ class ASTNode(object):
             children = [ASTNode.from_dict(c, node_types, vocab) for c in d["children"]]
 
         else:
+            # print d["tokens"]
             tokens = d["tokens"][:-1]
             if(len(tokens) == 1):
                 value = tokens[0]

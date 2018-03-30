@@ -84,7 +84,7 @@ class SubTree:
 
     def set_action_type(self,action_type):
         self.action_type=action_type
-        if(self.action_type=="gen"):
+        if(self.action_type=="gen" and self.tokens is None):
             self.tokens=list()
             self.tokens_type=list()
             self.tokens_vocab_index=list()
@@ -191,8 +191,9 @@ class Tree:
 
     def move(self):
         self.recursion +=1
-        if(self.recursion > 5000):
-            raise("Kill the script : more than 5000 nodes")
+        if(self.recursion > 1000):
+            print("Infinite loop assumed : no correct tree processed")
+            return False
         self.current_node.time_step = self.current_time_step
         assert(self.current_node.is_well_built())
 
@@ -283,7 +284,7 @@ class BuildingTree(Tree):
         # set a token, and its child if it was not an eos token
         tkindex = tkindex.item()
         assert(self.current_node.action_type == "gen")
-        end = (tkindex==self.grammar.get_vocab_index("<eos>"))
+        end = (tktype=="vocab" and tkindex==self.grammar.get_vocab_index("<eos>"))
         if(tktype=="vocab"):
             token = self.grammar.get_vocab(tkindex)
             tk_vocab_index = tkindex
@@ -313,10 +314,77 @@ class BuildingTree(Tree):
             self.need_to_move = False
             self.current_token_index+=1
 
+    def pick_and_get_token(self,probs,best_unk):
+        if(self.current_token_index == 0 and self.grammar.get_node_type(self.current_node.node_type)=='int'):
+            return self.pick_and_get_integer(probs,best_unk)
+
+        best_unk=best_unk.item()
+        tkindexvocab = np.argmax(probs).item()
+        unk = self.grammar.get_vocab_index("<unk>")
+        eos = self.grammar.get_vocab_index("<eos>")
+        assert(self.current_node.action_type == "gen")
+        end = (tkindexvocab==eos)
+        if(tkindexvocab != unk):
+            token = self.grammar.get_vocab(tkindexvocab)
+            tk_vocab_index = tkindexvocab
+            tk_query_index = None
+            tktype="vocab"
+        else:
+            token = self.sentence[best_unk]
+            tk_vocab_index = unk
+            tk_query_index = best_unk
+            tktype="copy"
+
+        self.current_node.set_token(token, tktype, tk_vocab_index,tk_query_index)
+        if(self.verbose):
+            print("new token of type",tktype,":",token)
+        if(end):
+            self.need_to_move = True
+            self.current_token_index=0
+        else:
+            self.need_to_move = False
+            self.current_token_index+=1
+
+        return tk_vocab_index
+
+    def pick_and_get_integer(self,probs,best_unk):
+        unk = self.grammar.get_vocab_index("<unk>")
+        eos = self.grammar.get_vocab_index("<eos>")
+        assert(self.current_node.action_type == "gen")
+        int_vocab_index = self.grammar.get_integer_indexes()
+        best_index = np.argmax(probs[int_vocab_index])
+        best_index = int_vocab_index[best_index].item()
+        token = int(self.grammar.get_vocab(best_index))
+        tk_vocab_index = best_index
+        tk_query_index = None
+        tktype="vocab"
+        try:
+            int_query = int(self.sentence[best_unk])
+            if(probs[unk]>probs[best_index]):
+                token = int_query
+                tk_vocab_index = unk
+                tk_query_index = best_unk
+                tktype="copy"
+        except:
+            print("No unknown integer was copied from the sentence")
+
+        self.current_node.set_token(token, tktype, tk_vocab_index,tk_query_index)
+        if(self.verbose):
+            print("new integer token :",token)
+
+        self.need_to_move = False
+        self.current_token_index+=1
+
+        return tk_vocab_index
+
     def get_query_vocab_index(self):
-        a = np.zeros(len(self.sentence)).astype(int)
-        for i, w in enumerate(self.sentence):
-            a[i] = self.grammar.get_vocab_index(w)
+        a = np.zeros(len(self.sentence)-1).astype(int)
+        for i, w in enumerate(self.sentence[:-1]):
+            n = self.grammar.get_vocab_index(w,lower=False)
+            if n==self.grammar.get_vocab_index("<unk>"):
+                n = self.grammar.get_vocab_index(w,lower=True)
+            a[i] = n
+        print(a)
         return a
 
 class OracleTree(Tree):
@@ -361,7 +429,7 @@ class OracleTree(Tree):
         '''
         tkvocindex,tkcopindex,tkinvocab = self.current_node.get_token_info(self.current_token_index, max_copy_index = len(self.sentence))
         if(self.verbose):
-            print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index])
+            print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index],", copy index ",self.current_node.tokens_query_index[self.current_token_index])
 
         if(tkvocindex==self.grammar.get_vocab_index("<eos>")):
             self.need_to_move=True
@@ -375,7 +443,6 @@ class OracleTree(Tree):
 
     def set_query(self,query):
         self.sentence=query
-
 
     def copy(self, verbose = False):
         tc = OracleTree(self.grammar, verbose)

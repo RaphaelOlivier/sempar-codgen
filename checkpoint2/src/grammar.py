@@ -10,7 +10,8 @@ class Indexer():
 		self.frontier_nodes = Indexer.index_reader("../../data/indexer/frontier_nodes_"+self.mode+".tsv", True, False)
 		self.annot_vocab = Indexer.index_reader("../../data/indexer/annot_vocab_"+self.mode+".tsv", False, False)
 		self.terminal_vocab = Indexer.index_reader("../../data/indexer/terminal_vocab_"+self.mode+".tsv", False, False)
-
+		self.terminal_vocab_lower = {k.lower():v for k,v in self.terminal_vocab.items()}
+		self.integer_indexes = self.extract_integer_vocab()
 		self.rules_by_node = self.rules_index_by_node_type_index()
 		self.rules_to_children = self.extract_children_from_rules()
 		#print(self.rules_to_children[9],self.rules_to_children[57])
@@ -74,6 +75,20 @@ class Indexer():
 	def get_node_type(self, index):
 		return self.node_types_index[index]
 
+	def get_integer_indexes(self):
+		return self.integer_indexes
+
+	def extract_integer_vocab(self):
+		ints = list()
+		for w,ind in self.terminal_vocab.items():
+			try:
+				n = int(w)
+				ints.append(ind)
+			except:
+				pass
+		print(ints)
+		return np.array(ints)
+
 	def appostrophize(self,word):
 		if(word[-1]!="'"):
 			word = word + "'"
@@ -81,12 +96,19 @@ class Indexer():
 			word = "'" + word
 		return word
 
-	def get_vocab_index(self, token):
+	def get_vocab_index(self, token, lower=False):
 		# print(self.terminal_vocab)
-		if token in self.terminal_vocab.keys():
-			return self.terminal_vocab[token]
+		if not lower:
+			if token in self.terminal_vocab.keys():
+				return self.terminal_vocab[token]
+			else:
+				return self.terminal_vocab["<unk>"]
 		else:
-			return self.terminal_vocab["<unk>"]
+			token=token.lower()
+			if token in self.terminal_vocab_lower.keys():
+				return self.terminal_vocab_lower[token]
+			else:
+				return self.terminal_vocab["<unk>"]
 
 	def get_vocab(self, token_index):
 		return self.terminal_vocab_index[token_index]

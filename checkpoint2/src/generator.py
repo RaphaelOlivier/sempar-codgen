@@ -17,12 +17,12 @@ import tree
 parser = ArgumentParser(description='Checkpoint2 Code Generator')
 parser.add_argument('--data', type=str, default='hs',
                     help='Dataset to be used')
-parser.add_argument('--iter', type=int, default=2,
+parser.add_argument('--iter', type=int, default=20,
                     help='Training iteration')
 
 args, _ = parser.parse_known_args()
 
-# flag_copy = False
+flag_copy = False
 mode = args.data
 ITERATION = args.iter
 start = time.time()
@@ -37,7 +37,7 @@ vocab_length_source = sourceDataset.vocab_length
 vocab_length_target = targetIndexer.vocab_length
 vocab_length_nodes = targetIndexer.node_length
 vocab_length_rules = targetIndexer.rule_length
-today = datetime.datetime.now().strftime("%Y-%m-%d")
+
 # Reading data
 
 # start Dynet and define trainer
@@ -46,7 +46,7 @@ if mode == "django":
     modulo = 100
 
 args_model = namedtuple('args', ['numLayer', 'embeddingSourceSize', 'embeddingApplySize', 'embeddingGenSize', 'embeddingNodeSize',
-                                 'hiddenSize', 'attSize', 'pointerSize', 'dropout', 'learningRate'])(1, 128, 128, 128, 64, 256, 50, 50, 0.2, 0.001)
+                                 'hiddenSize', 'attSize', 'pointerSize', 'dropout', 'learningRate'])(1, 128, 128, 128, 64, 256, 50, 50, 0.0, 0.001)
 
 net = ASTNet(args=args_model, vocabLengthSource=vocab_length_source,
              vocabLengthActionRule=vocab_length_rules, vocabLengthNodes=vocab_length_nodes,
@@ -122,8 +122,9 @@ def train(log_writer):
 
 
 # Training
-log_writer = open("../../data/exp/log/" +str(ITERATION)+"_iter_"+mode+ "_"+str(today)+".log", 'w')
-# net.load("../../data/exp/models/hs_4lowest_iter_AdamTrainer.model")
+log_writer = open("../../data/exp/log/"+str(ITERATION)+"_iter_"+mode+".log", 'w')
+#net.load("../../data/exp/models/hs_4lowest_iter_AdamTrainer.model")
+'''
 print("iteration: " + str(ITERATION))
 lowest_dev_loss = float("inf")
 successive_decreasing_counter = 0
@@ -136,8 +137,8 @@ for ITER in range(ITERATION):
         print("----------------------------------")
         print("Saving lowest dev perplexity: " +
               str(lowest_dev_perplexity) + " at iteration: " + str(ITER) + "...")
-        net.save("../../data/exp/models/"+mode+"_"+str(ITER) +"_"+str(today) +
-                 "_lowest_iter_AdamTrainer.model")
+        net.save("../../data/exp/models/"+mode+"_"+str(ITER) +
+                 "lowest_iter_AdamTrainer.model")
         print("----------------------------------")
     if lowest_dev_loss > dev_loss_per_word:
         lowest_dev_loss = dev_loss_per_word
@@ -155,7 +156,10 @@ for ITER in range(ITERATION):
 log_writer.close()
 
 # net.save("../../data/exp/models/"+mode+"_"+str(ITERATION)+"_iter_AdamTrainer.model")
-# net.load("../../data/exp/models/"+mode+"_10_iter_AdamTrainer.model")
+'''
+#net.load("../../data/exp/models/django_8lowest_iter_AdamTrainer.model")
+
+net.load("../../../5-iter.model")
 # generate result
 trees = []
 print("Generating result...")
@@ -172,7 +176,7 @@ for i in range(0, len(target_test_dataset)):
     trees.append(generated_tree)
 
 print("Writing result...")
-
+today = datetime.datetime.now().strftime("%Y-%m-%d")
 #path = "../../data/exp/results/test_"+mode+"_" + str(ITERATION)+"_iter.json"
-suffix = str(ITERATION)+"_iter"+"_"+str(today)
+suffix = str(today) + "_" + str(ITERATION)+"_iter"
 targetDataset.export(trees, suffix)

@@ -47,10 +47,13 @@ def write_to_json_file(path,data):
     g = data.grammar
     v = data.terminal_vocab
     for i in range(len(data.examples)):
+    #for i in range(428,429):
         t = data.examples[i].parse_tree
         q = data.examples[i].query
+        #print("query: " + str(t))
         d = t.to_dict(q,g,v)
         l.append(d)
+        #print(d)
 
     with open(path,'w') as f:
         json.dump(l,f, encoding='latin1')
@@ -97,15 +100,16 @@ def main(flag,task,path_load = None, path_write= None, path_raw_code=None):
     #uncomment below for Hearthstone data set
     #train_data, dev_data, test_data = deserialize_from_file("hs.freq3.pre_suf.unary_closure.bin")
     if(task=="ast2json"):
+        
         print("----- TRAIN -----")
         write_to_json_file("../data/"+flag+"_dataset/"+flag+".train.json", train_data)
-
-
+        
         print("----- DEV -----")
         write_to_json_file("../data/"+flag+"_dataset/"+flag+".dev.json", dev_data)
-
+        
         print("----- TEST -----")
         write_to_json_file("../data/"+flag+"_dataset/"+flag+".test.json", test_data)
+        
     if(task=="json2ast"):
         print("----- TEST -----")
         write_to_code_file(flag, train_data, path_load, path_write,path_raw_code)

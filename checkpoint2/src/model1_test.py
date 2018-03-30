@@ -405,15 +405,14 @@ class ASTNet:
 					for i in range(len(source_vocab_index)):
 						if(source_vocab_index[i] != unk):
 							probs_vocab[source_vocab_index[i]]+= copy_probs[i]
-					if(len(source_unk)>0):
-						best_copy_unk = np.argmax(copy_probs[source_unk])
-						best_copy_unk = source_unk[best_copy_unk]
-						probs_vocab[unk]=copy_probs[best_copy_unk]
+					#print(type(source_unk))
+					#print(source_unk)
+					best_copy_unk = np.argmax(copy_probs[source_unk])
+					best_copy_unk = source_unk[best_copy_unk]
+					probs_vocab[unk]=copy_probs[best_copy_unk]
 
 				pred_token = np.argmax(probs_vocab)
-				print("pred: " + str(pred_token))
 				if(pred_token==unk):
-					#print(best_copy_unk)
 					tree.set_token("copy", best_copy_unk)
 				else:
 					tree.set_token("vocab",pred_token)

@@ -49,9 +49,16 @@ class SubTree:
         return self.children != None and ((self.action_type == "apply" and self.rule != None) or (self.action_type == "gen" and len(self.tokens)>0))
 
 
+    #i = self.current_token_index, max_copy_index = len(self.sentence)
     def get_token_info(self,i, max_copy_index):
-        # print(i,len(self.tokens))
-        assert(i<len(self.tokens))
+
+        try:
+            assert(i<(len(self.tokens)))
+        except Exception:
+            print(self.tokens)
+            print(i,len(self.tokens))
+        #print(self.tokens)
+        #print(i,len(self.tokens))
         token = self.tokens[i]
         tktype = self.tokens_type[i]
         tkvocindex = self.tokens_vocab_index[i]
@@ -95,6 +102,20 @@ class SubTree:
         st.time_step = None
         st.children = [c.copy(st) for c in self.children]
         st.child_to_explore = 0
+        return st
+
+    def hard_copy(self,parent):
+        st = SubTree(self.node_type,self.label,parent)
+        st.action_type = self.action_type
+        st.rule = self.rule
+        if(st.action_type == "gen"):
+            st.tokens= self.tokens[:]
+            st.tokens_type = self.tokens_type[:]
+            st.tokens_vocab_index = self.tokens_vocab_index[:]
+            st.tokens_query_index = self.tokens_query_index[:]
+        st.time_step = self.time_step
+        st.children = [c.hard_copy(st) for c in self.children]
+        st.child_to_explore = self.child_to_explore
         return st
 
 
@@ -160,6 +181,7 @@ class Tree:
         self.current_token_index = 0
         self.verbose = verbose
         self.current_time_step=0
+        self.recursion = 0
 
 
     def go_to_root(self):
@@ -167,13 +189,10 @@ class Tree:
             self.current_node = self.current_node.parent
         self.current_time_step=0
 
-
-
     def move(self):
-
-        # shift the node to the next one, and specify the action type associated to its frontier node
-        # print(self.need_to_move)
-        #print("old node :",self.current_node,self.current_node.node_type,self.current_node.,self.current_node.parent, self.current_node.children, self.current_node.tokens)
+        self.recursion +=1
+        if(self.recursion > 5000):
+            raise("Kill the script : more than 5000 nodes")
         self.current_node.time_step = self.current_time_step
         assert(self.current_node.is_well_built())
 
@@ -201,10 +220,13 @@ class Tree:
 
     def get_parent_time(self):
         # value needed by the model
-        if(self.current_node.action_type=="gen" and self.current_token_index > 0):
-            return self.current_node.time_step
-        else:
-            return self.current_node.parent.time_step
+
+        # if(self.current_node.action_type=="gen" and self.current_token_index > 0):
+        #     return self.current_node.time_step
+        # else:
+        #     return self.current_node.parent.time_step
+
+        return self.current_node.parent.time_step
 
     def has_ended(self):
         # to know if decoding is over (current node is None)
@@ -224,6 +246,14 @@ class BuildingTree(Tree):
         self.current_node.action_type = "apply"
         self.sentence = query
 
+    def hard_copy(self):
+        bt=BuildingTree(self.grammar,self.query, self.verbose)
+        bt.current_node = self.current_node.hard_copy()
+        bt.root_node = self.current_node
+        bt.need_to_move = self.need_to_move
+        bt.current_token_index = self.current_token_index
+        bt.current_time_step=self.current_time_step
+
     def pick_and_get_rule(self, rules_probs):
         # from the rule probabilities, find the best one conditionned to the frontier node type and update the tree
         assert(self.current_node.action_type == "apply")
@@ -237,6 +267,16 @@ class BuildingTree(Tree):
         if(self.verbose):
             print("new rule :",self.grammar.get_rule(pred_rule))
         return pred_rule
+
+    def get_authorized_rules(self):
+        return self.grammar.rules_from_node(self.current_node.node_type)
+
+    def set_rule(self, pred_rule):
+        child_nodes = self.grammar.get_children(pred_rule)
+        self.current_node.set_rule(pred_rule, child_nodes)
+        self.need_to_move=True
+        if(self.verbose):
+            print("new rule :",self.grammar.get_rule(pred_rule))
 
     def set_token(self, tktype, tkindex):
         # print(tkindex)
@@ -256,6 +296,7 @@ class BuildingTree(Tree):
         if(self.grammar.get_node_type(self.current_node.node_type)=='int' and not end): # we need a number
             #print(self.current_node.node_type)
             try:
+                print("here: " + str(token) + " node type: " + str(self.grammar.get_node_type(self.current_node.node_type)))
                 token = int(token)
             except:
                 token=0
@@ -311,9 +352,13 @@ class OracleTree(Tree):
         return t
 
     def get_oracle_token(self):
-        #print(self.current_node)
         # returns the correct token for loss computation in the model
         assert(self.current_node.action_type == "gen")
+        '''
+        print("sentence: " + str(self.sentence))
+        print("length sentence: " + str(len(self.sentence)))
+        print("token index: " + str(self.current_token_index))
+        '''
         tkvocindex,tkcopindex,tkinvocab = self.current_node.get_token_info(self.current_token_index, max_copy_index = len(self.sentence))
         if(self.verbose):
             print("new token :",self.current_node.tokens[self.current_token_index],", voc index ",self.current_node.tokens_vocab_index[self.current_token_index])

@@ -16,3 +16,8 @@ Our baseline was inspired by the paper [Grammar as a Foreign Language](https://a
 * **src** : our code
     * *grammar.py* : grammar model
     * *indexer.py* : extract rules, nodes, and vocabulary from data set using some of Pengcheng Yin's code into tsv file
+    * *model1.py* : sepcifies a class that implements the neural model as implemented in the paper [A Syntactic Neural Model for General-Purpose Code Generation]. It was coded in Dynet, with the help of the documentataion and the course code examples
+    * *sota.py* : the script. To run it, run the command `python sota.py --autobatching 1 --iter=10. Other implementation parameters are hardcoded in the file and can be easily changed.
+    * *accuracy.py*: a small script to compute the accuracy and the BLEU score. File paths are hardcoded. The script uses nltk dependency.
+    * *ast_grammar.py*: Contains the AST rules
+    * *tree.py* : Python script to which interacts with the neural model and provide tree information during training and prediction

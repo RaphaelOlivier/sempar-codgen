@@ -70,8 +70,8 @@ class ASTNet:
 		self.w_pointer_out = self.model.add_parameters((1, self.pointerSize))
 		self.b_pointer_out = self.model.add_parameters((1))
 		# initializing the encoder and decoder
-		self.forward_encoder = dy.LSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.model)
-		self.backward_encoder = dy.LSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.model)
+		self.forward_encoder = dy.VanillaLSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.model)
+		self.backward_encoder = dy.VanillaLSTMBuilder(self.numLayer, self.embeddingSourceSize, self.hiddenSize, self.model)
 
 		# check this
 		# embedding size + (previous action embedding + context vector + node type mebedding + parnnet feeding )

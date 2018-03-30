@@ -145,6 +145,11 @@ class SubTree:
             st.tokens_type=d["tokens_type"]
             st.tokens_vocab_index = d["tokens_vocab_index"]
             st.tokens_query_index = d["tokens_query_index"]
+            print(st.tokens)
+            print(st.tokens_type)
+            print(st.tokens_vocab_index)
+            print(st.tokens_query_index)
+
             total_length = len(st.tokens) - 1
 
         assert(st.is_well_built())

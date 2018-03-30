@@ -336,15 +336,15 @@ class ASTNet:
 		prev_action_embedding = dy.inputTensor(np.zeros(self.embeddingApplySize))
 		context_vector = self.get_att_context_vector(encoded_states, current_state, attentional_component)
 		# no parent time
-		frontier_node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
+		node_type_embedding = self.nodeTypeLookup[tree.get_node_type()]
 		parent_action = dy.inputTensor(np.zeros(self.hiddenSize+self.embeddingApplySize))
-		current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, frontier_node_type_embedding, dropout=False)
+		current_state = self.decoder_state(current_state, prev_action_embedding, context_vector, parent_action, node_type_embedding, dropout=False)
 		decoder_states.append(current_state)
 		current_state_output = current_state.output()
 		# action_type = "apply"
 		current_apply_action_embedding = self.get_apply_action_embedding(current_state_output, wr, br) # output of the lstm
 		rule_probs = dy.log_softmax(current_apply_action_embedding).value() # check if transpose needed
-		next_rule = tree.pick_and_get_rule((rule_probs))
+		next_rule = tree.pick_and_get_rule(rule_probs)
 		prev_action_embedding = self.actionRuleLookup[next_rule]
 		decoder_actions.append(prev_action_embedding)
 

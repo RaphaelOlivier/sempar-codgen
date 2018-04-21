@@ -35,7 +35,7 @@ predicted = args.predicted_path
 
 if mode == 'hs':
     goldenTest = "../../data/hs_dataset/hs.test_new.code"
-    #predicted = "../../data/exp/results_new/test_hs_10_iter_2018-03-30.result"
+    #predicted = "../../data/exp/results/test_hs_30_iter_2018-03-30_now.result"
 
 if mode == 'django':
     goldenTest = "../../data/django_dataset/django.test.code"
@@ -65,8 +65,8 @@ with open(goldenTest, "r", encoding='utf-8', errors='ignore') as s_file, open(pr
     for golden_line, predicted_line in zip(s_file, t_file):
         reference = tokenize_for_bleu_eval(golden_line[:-1])
         candidate = tokenize_for_bleu_eval(predicted_line[:-1])
-        print(reference)
-        print(candidate)
+        #print(reference)
+        #print(candidate)
         cum_score = cum_score + sentence_bleu(reference,candidate)#, smoothing_function=sm.method3)  # cumulative score blue
     total_score = cum_score*100.0/total
     print('BLEU score (percent): %.2f' % (total_score))

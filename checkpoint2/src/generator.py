@@ -159,7 +159,7 @@ log_writer.close()
 '''
 #net.load("../../data/exp/models/django_8lowest_iter_AdamTrainer.model")
 
-net.load("../../../5-iter.model")
+net.load("../../data/exp/models/hs_20_2018-03-30_lowest_iter_AdamTrainer.model")
 # generate result
 trees = []
 print("Generating result...")
@@ -178,5 +178,5 @@ for i in range(0, len(target_test_dataset)):
 print("Writing result...")
 today = datetime.datetime.now().strftime("%Y-%m-%d")
 #path = "../../data/exp/results/test_"+mode+"_" + str(ITERATION)+"_iter.json"
-suffix = str(today) + "_" + str(ITERATION)+"_iter"
+suffix = str(today) + "_20_iter"
 targetDataset.export(trees, suffix)

@@ -70,11 +70,18 @@ def Levenshtein_edit_distance(rawtext,dictionary,output):
 		else:
 			output_ptr.write(correct_sentence + " " + str(min_distance+1)+"\n")		
 
-x = "one two three four"
-x_m = "one four five"
+x = "NAME_BEGIN Archmage NAME_END ATK_BEGIN 4 ATK_END DEF_BEGIN 7 DEF_END COST_BEGIN 6 COST_END DUR_BEGIN -1 DUR_END TYPE_BEGIN Minion TYPE_END PLAYER_CLS_BEGIN Neutral PLAYER_CLS_END RACE_BEGIN NIL RACE_END RARITY_BEGIN Common RARITY_END DESC_BEGIN Spell Damage +1 DESC_END"
+x_m = "NAME_BEGIN Booty Bay Bodyguard NAME_END ATK_BEGIN 5 ATK_END DEF_BEGIN 4 DEF_END COST_BEGIN 5 COST_END DUR_BEGIN -1 DUR_END TYPE_BEGIN Minion TYPE_END PLAYER_CLS_BEGIN Neutral PLAYER_CLS_END RACE_BEGIN NIL RACE_END RARITY_BEGIN Common RARITY_END DESC_BEGIN Taunt DESC_END"
+new_x = 'NAME_BEGIN Searing Totem NAME_END ATK_BEGIN 1 ATK_END DEF_BEGIN 1 DEF_END COST_BEGIN 1 COST_END DUR_BEGIN -1 DUR_END TYPE_BEGIN Minion TYPE_END PLAYER_CLS_BEGIN Shaman PLAYER_CLS_END RACE_BEGIN Totem RACE_END RARITY_BEGIN Free RARITY_END DESC_BEGIN NIL DESC_END'
+newer_x = 'NAME_BEGIN Voodoo Doctor NAME_END ATK_BEGIN 2 ATK_END DEF_BEGIN 1 DEF_END COST_BEGIN 1 COST_END DUR_BEGIN -1 DUR_END TYPE_BEGIN Minion TYPE_END PLAYER_CLS_BEGIN Neutral PLAYER_CLS_END RACE_BEGIN NIL RACE_END RARITY_BEGIN Free RARITY_END DESC_BEGIN Battlecry : Restore 2 Health . DESC_END'
 dist = sentence_distance(x, x_m)
 print dist
 
+dist2 = sentence_distance(x, new_x)
+print dist2
+
+dist3 = sentence_distance(x, newer_x)
+print dist3
 #	x = first_sentence
 #	x_m = second_sentence
 def simi(first_sentence, second_sentence):

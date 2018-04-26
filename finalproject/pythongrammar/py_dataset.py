@@ -6,6 +6,8 @@ import logging
 from itertools import chain
 import nltk
 import re
+import json
+
 
 #from nn.utils.io_utils import serialize_to_file, deserialize_from_file
 #from nn.utils.generic_utils import init_logging
@@ -201,7 +203,13 @@ def parse_hs_dataset():
             f.write(rule.__repr__() + '\n')
 
     annot_tokens = list(chain(*[e['query_tokens'] for e in data]))
-    annot_vocab = gen_vocab(annot_tokens, vocab_size=5000, freq_cutoff=WORD_FREQ_CUT_OFF)
+    annot_vocab = gen_vocab(annot_tokens, vocab_size=5000, freq_cutoff=WORD_FREQ_CUT_OFF) # this generates the NL vocab
+
+    print ("*********************")
+    print (annot_vocab.token_id_map)
+    with open('annot_vocab.txt', 'w') as file:
+        file.write(json.dumps(annot_vocab.token_id_map)) 
+ 
 
     def get_terminal_tokens(_terminal_str):
         """
@@ -233,7 +241,12 @@ def parse_hs_dataset():
                     assert len(terminal_token) > 0
                     all_terminal_tokens.append(terminal_token)
 
-    terminal_vocab = gen_vocab(all_terminal_tokens, vocab_size=5000, freq_cutoff=WORD_FREQ_CUT_OFF)
+    terminal_vocab = gen_vocab(all_terminal_tokens, vocab_size=5000, freq_cutoff=WORD_FREQ_CUT_OFF) # terminal nodes of the tree 
+
+    print ("..............")
+    print (terminal_vocab.token_id_map)
+    with open('terminal_vocab.txt', 'w') as file:
+        file.write(json.dumps(terminal_vocab.token_id_map)) 
 
     # now generate the dataset!
 
@@ -354,8 +367,8 @@ def parse_hs_dataset():
     dev_data.init_data_matrices(max_query_length=70, max_example_action_num=350)
     test_data.init_data_matrices(max_query_length=70, max_example_action_num=350)
 
-    serialize_to_file((train_data, dev_data, test_data),
-                      'data/hs.freq{WORD_FREQ_CUT_OFF}.max_action350.pre_suf.unary_closure.bin'.format(WORD_FREQ_CUT_OFF=WORD_FREQ_CUT_OFF))
+    #serialize_to_file((train_data, dev_data, test_data),
+    #                  'data/hs.freq{WORD_FREQ_CUT_OFF}.max_action350.pre_suf.unary_closure.bin'.format(WORD_FREQ_CUT_OFF=WORD_FREQ_CUT_OFF))
 
     return train_data, dev_data, test_data
 

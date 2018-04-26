@@ -392,6 +392,8 @@ def parse_django_dataset():
     annot_tokens = list(chain(*[e['query_tokens'] for e in data]))
     annot_vocab = gen_vocab(annot_tokens, vocab_size=5000, freq_cutoff=3) # gen_vocab(annot_tokens, vocab_size=5980)
 
+    print "got annotation vocabulary"
+
     terminal_token_seq = []
     empty_actions_count = 0
 
@@ -430,6 +432,8 @@ def parse_django_dataset():
 
     terminal_vocab = gen_vocab(terminal_token_seq, vocab_size=5000, freq_cutoff=3)
     assert '_STR:0_' in terminal_vocab
+
+    print "in terminal vocab"
 
     train_data = DataSet(annot_vocab, terminal_vocab, grammar, 'train_data')
     dev_data = DataSet(annot_vocab, terminal_vocab, grammar, 'dev_data')
@@ -784,8 +788,8 @@ def preprocess_dataset(annot_file, code_file):
 
 
 if __name__== '__main__':
-    from nn.utils.generic_utils import init_logging
-    init_logging('parse.log')
+    #from nn.utils.generic_utils import init_logging
+    #init_logging('parse.log')
 
     # annot_file = '/Users/yinpengcheng/Research/SemanticParsing/CodeGeneration/en-django/all.anno'
     # code_file = '/Users/yinpengcheng/Research/SemanticParsing/CodeGeneration/en-django/all.code'
@@ -802,6 +806,6 @@ if __name__== '__main__':
 
     # clean_dataset()
 
-    parse_django_dataset()
-    # from lang.py.py_dataset import parse_hs_dataset
-    # parse_hs_dataset()
+    #parse_django_dataset()
+    from py_dataset import parse_hs_dataset
+    parse_hs_dataset()

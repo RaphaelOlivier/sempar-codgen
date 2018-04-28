@@ -1,0 +1,91 @@
+1. Class Name Error
+--- line 2 ---
+class Booty Bay Bodyguard Bodyguard
+class Booty Bay Bodyguard
+
+Since it's a copy: need restriction
+Predicted: Line 17
+class Annoy - o - Tron ( Minion Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Annoy - o - Tron ` , 2 , CHARACTER_CLASS . ALL , CARD_RARITY . COMMON , minion_type = MINION_TYPE . MECH ) def create_minion ( self , player ) : return Minion ( 1 , 2 , charge = True , taunt = True )
+
+Gold:
+class Annoyo Tron ( Minion Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Annoy - o - Tron ` , 2 , CHARACTER_CLASS . ALL , CARD_RARITY . COMMON , minion_type = MINION_TYPE . MECH ) def create_minion ( self , player ) : return Minion ( 1 , 2 , divine_shield = True , taunt = True )
+
+Line 19
+class Wrench Wrench -> Predicted
+class Cogmasters Wrench -> Gold
+
+class Mini - Mage 
+class Mini Mage
+
+line 30
+NLP query: Death's Bite
+Predicted:
+class Vol ` jin ( Minion Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Vol ` jin ` , 5 , CHARACTER_CLASS . PRIEST , CARD_RARITY . LEGENDARY , battlecry = Battlecry ( Swap Stats ( ` health ` , ` attack ` , False ) , Minion Selector ( condition = User Picker ( ) , picker = User Picker ( ) ) ) ) def create_minion ( self , player ) : return Minion ( 6 , 2 )
+
+Predicted: Line 31
+class Death Bite ( Weapon Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Death Bite ` , 4 , CHARACTER_CLASS . WARRIOR , CARD_RARITY . COMMON ) def create_weapon ( self , player ) : return Weapon ( 4 , 2 , deathrattle = Deathrattle ( Damage ( 1 ) , Minion Selector ( players = Both Player ( ) ) ) , taunt = True )
+
+Gold:
+class Deaths Bite ( Weapon Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Death ` s Bite ` , 4 , CHARACTER_CLASS . WARRIOR , CARD_RARITY . COMMON ) def create_weapon ( self , player ) : return Weapon ( 4 , 2 , deathrattle = Deathrattle ( Damage ( 1 ) , Minion Selector ( players = Both Player ( ) ) ) )
+
+2. Generate non-empty parameters
+--- EXAMPLE ---
+--- line 3 ---
+Predicted:
+class Darkscale Healer ( Minion Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Darkscale Healer ` , 5 , CHARACTER_CLASS . ALL , CARD_RARITY . COMMON , battlecry = Battlecry ( Heal ( 2 ) , Character Selector ( players = Both Player ( ) , picker = User Picker ( ) ) ) ) def create_minion ( self , player ) : return Minion ( 4 , 5 )
+
+Gold:
+class Darkscale Healer ( Minion Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Darkscale Healer ` , 5 , CHARACTER_CLASS . ALL , CARD_RARITY . COMMON , battlecry = Battlecry ( Heal ( 2 ) , Character Selector ( ) ) ) def create_minion ( self , player ) : return Minion ( 4 , 5 )
+
+------------------
+Predicted:
+class Fiery War Axe ( Weapon Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Fiery War Axe ` , 2 , CHARACTER_CLASS . WARRIOR , CARD_RARITY . FREE , False ) def create_weapon ( self , player ) : return Weapon ( 3 , 2 )
+
+Gold:
+class Fiery War Axe ( Weapon Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Fiery War Axe ` , 2 , CHARACTER_CLASS . WARRIOR , CARD_RARITY . FREE ) def create_weapon ( self , player ) : return Weapon ( 3 , 2 )
+
+3. Cannot handle if else structure
+Predicted: Line 7
+class Innervate ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Innervate ` , 0 , CHARACTER_CLASS . DRUID , CARD_RARITY . FREE ) def use ( self , player , game ) : super ( ) . use ( player , game ) for i in range ( 0 , 2 ) : player . draw ( ) player . draw ( )
+
+Gold:
+class Innervate ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Innervate ` , 0 , CHARACTER_CLASS . DRUID , CARD_RARITY . FREE ) def use ( self , player , game ) : super ( ) . use ( player , game ) if player . mana < 8 : player . mana + = 2 else : player . mana = 10
+
+------------------
+Predicted: Line 9
+class Mortal Coil ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Mortal Coil ` , 1 , CHARACTER_CLASS . WARLOCK , CARD_RARITY . COMMON , target_func = hearthbreaker . targeting . find_minion_spell_target ) def use ( self , player , game ) : super ( ) . use ( player , game ) self . target . damage ( player . effective_spell_damage ( player . hero . calculate_attack ( ) ) , self ) player . draw ( )
+
+Gold:
+class Mortal Coil ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Mortal Coil ` , 1 , CHARACTER_CLASS . WARLOCK , CARD_RARITY . COMMON , target_func = hearthbreaker . targeting . find_minion_spell_target ) def use ( self , player , game ) : super ( ) . use ( player , game ) if self . target . health < = player . effective_spell_damage ( 1 ) and not self . target . divine_shield : self . target . damage ( player . effective_spell_damage ( 1 ) , self ) player . draw ( ) else : self . target . damage ( player . effective_spell_damage ( 1 ) , self )
+
+--- Line 20
+
+4. Cannot handle import or for loop (another different structure)
+------------------
+Predicted:
+class Polymorph ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Polymorph ` , 4 , CHARACTER_CLASS . MAGE , CARD_RARITY . FREE , target_func = hearthbreaker . targeting . find_minion_spell_target ) def use ( self , player , game ) : super ( ) . use ( player , game ) self . target . add_buff ( Buff ( into ( ) ) )
+
+Gold:
+class Polymorph ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Polymorph ` , 4 , CHARACTER_CLASS . MAGE , CARD_RARITY . FREE , target_func = hearthbreaker . targeting . find_minion_spell_target ) def use ( self , player , game ) : super ( ) . use ( player , game ) from hearthbreaker . cards . minions . mage import Sheep sheep = Sheep ( ) minion = sheep . create_minion ( None ) minion . card = sheep self . target . replace ( minion )
+
+5. Many Parameters in Gold
+Line 21
+Predicted:
+class Floating Watcher ( Minion Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Floating Watcher ` , 5 , CHARACTER_CLASS . WARLOCK , CARD_RARITY . COMMON , minion_type = MINION_TYPE . DEMON ) def create_minion ( self , player ) : return Minion ( 4 , 4 , effects = [ Effect ( Turn Ended ( Has Watcher ( ) ) , Action Tag ( Give ( Change Attack ( 2 ) ) , Self Selector ( ) ) ) ] )
+
+Gold:
+class Floating Watcher ( Minion Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Floating Watcher ` , 5 , CHARACTER_CLASS . WARLOCK , CARD_RARITY . COMMON , minion_type = MINION_TYPE . DEMON ) def create_minion ( self , player ) : return Minion ( 4 , 4 , effects = [ Effect ( Character Damaged ( And ( Is Hero ( ) , Owners Turn ( ) ) ) , Action Tag ( Give ( [ Buff ( Change Attack ( 2 ) ) , Buff ( Change Health ( 2 ) ) ] ) , Self Selector ( ) ) ) ] )
+
+40
+Predicted:
+class Conceal ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Conceal ` , 1 , CHARACTER_CLASS . ROGUE , CARD_RARITY . COMMON ) def use ( self , player , game ) : super ( ) . use ( player , game ) self . target . append ( Buff ( Turn Started ( ) ) ) player . draw ( )
+
+Gold:
+class Conceal ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Conceal ` , 1 , CHARACTER_CLASS . ROGUE , CARD_RARITY . COMMON ) def use ( self , player , game ) : super ( ) . use ( player , game ) for minion in player . minions : if not minion . stealth : minion . add_buff ( Buff Until ( Stealth ( ) , Turn Started ( ) ) )
+
+5. Wrong variable name
+Predicted:
+class Solemn Vigil ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Solemn Vigil ` , 5 , CHARACTER_CLASS . PALADIN , CARD_RARITY . COMMON , overload = 1 ) def use ( self , player , game ) : super ( ) . use ( player , game ) for i in range ( 0 , 3 ) : player . draw ( )
+
+Gold:
+class Solemn Vigil ( Spell Card ) : def __init__ ( self ) : super ( ) . __init__ ( ` Solemn Vigil ` , 5 , CHARACTER_CLASS . PALADIN , CARD_RARITY . COMMON , buffs = [ Buff ( Mana Change ( Count ( Dead Minion Selector ( players = Both Player ( ) ) ) , - 1 ) ) ] ) def use ( self , player , game ) : super ( ) . use ( player , game ) for n in range ( 0 , 2 ) : player . draw ( )

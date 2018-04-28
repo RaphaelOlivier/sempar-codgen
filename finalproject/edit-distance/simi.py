@@ -1,9 +1,3 @@
-#usage: python2 editdistance.py 1 raw_test.txt dictionary_test.txt output.txt
-
-from __future__ import division
-from string import ascii_lowercase as al
-import glob
-import re
 import collections
 import os
 import sys
@@ -15,15 +9,14 @@ def sentence_distance(first_sentence, second_sentence):
 	second_sentence = second_sentence.split(' ')
 	m = len(first_sentence)+1
 	n = len(second_sentence)+1
-	matrix = np.zeros((n, m), dtype=int) #[[0]*(m) for _ in range(n)]
-	#print matrix
+	matrix = np.zeros((n, m), dtype=int)
 
 	for i in range(n):
 		matrix[i][0] = i # n rows
 
 	for i in range(m):
 		matrix[0][i] = i # m columns
-	print("-----------")
+	#print("-----------")
 	for i in range(1,n):
 		for j in range(1,m):
 			if first_sentence[j-1] == second_sentence[i-1]:
@@ -35,10 +28,10 @@ def sentence_distance(first_sentence, second_sentence):
 			matrix[i][j] = min(matrix[i-1][j]+1, matrix[i][j-1]+1, matrix[i-1][j-1] + penalty)
 
 	#print matrix[n-1][m-1]
-	print matrix
+	#print matrix
 	return matrix, matrix[n-1][m-1]
 
-def align(first_sentence, second_sentence, matrix):
+def align(first_sentence, second_sentence, matrix, print_flag):
 	first_sentence = first_sentence.split(' ')
 	second_sentence = second_sentence.split(' ')
 	m = len(first_sentence)
@@ -49,8 +42,8 @@ def align(first_sentence, second_sentence, matrix):
 	j = m
 	reverse1 = []
 	reverse2 = []
-	print("first sentence: " + str(first_sentence) + " " + str(len(first_sentence)))
-	print("second sentence: " + str(second_sentence) + " " + str(len(second_sentence)))
+	#print("first sentence: " + str(first_sentence) + " " + str(len(first_sentence)))
+	#print("second sentence: " + str(second_sentence) + " " + str(len(second_sentence)))
 	#print("i: " + str(i))
 	#print("j: " + str(j))
 	unedited_words = {}
@@ -92,25 +85,60 @@ def align(first_sentence, second_sentence, matrix):
 			print("--------------------")
 		
 
-	print reverse1[::-1]
-	print reverse2[::-1]
-	print unedited_words
-	print first_index_dict
-	print second_index_dict
+	if print_flag:
+		print "----- ALIGNMENT ---- "
+		print reverse1[::-1]
+		print reverse2[::-1]
+		print "----- END OF ALIGNMENT ---- "
+		print unedited_words
+		print first_index_dict
+		print second_index_dict
 	return unedited_words, first_index_dict, second_index_dict
 
 first = "a x b c e f"
 second = "a b d e v w x y"
+first = "NAME_BEGIN Assassin 's Blade NAME_END ATK_BEGIN 3 ATK_END DEF_BEGIN -1 DEF_END COST_BEGIN 5 COST_END DUR_BEGIN 4 DUR_END TYPE_BEGIN Weapon TYPE_END PLAYER_CLS_BEGIN Rogue PLAYER_CLS_END RACE_BEGIN NIL RACE_END RARITY_BEGIN Common RARITY_END DESC_BEGIN NIL DESC_END"
+second = "NAME_BEGIN Mark of the Wild NAME_END ATK_BEGIN -1 ATK_END DEF_BEGIN -1 DEF_END COST_BEGIN 2 COST_END DUR_BEGIN -1 DUR_END TYPE_BEGIN Spell TYPE_END PLAYER_CLS_BEGIN Druid PLAYER_CLS_END RACE_BEGIN NIL RACE_END RARITY_BEGIN Free RARITY_END DESC_BEGIN Give a minion Taunt and +2/+2 . ( +2 Attack/+2 Health ) DESC_END"
 matrix, dist = sentence_distance(first, second)
-print("distance: " + str(dist))
-align(first, second, matrix)
+#print("distance: " + str(dist))
+align(first, second, matrix, False)
 
 #	x = first_sentence
 #	x_m = second_sentence
 def simi(first_sentence, second_sentence):
 	max_score = max(len(first_sentence.split()), len(second_sentence.split()))
-	simi = 1.0 - (sentence_distance(first_sentence, second_sentence)[1]/max_score)
+	simi = 1.0 - (float(sentence_distance(first_sentence, second_sentence)[1])/float(max_score))
 	return simi
 
 simi_score = simi(first, second)
-print ("simi score: " + str(simi_score))
+#print ("simi score: " + str(simi_score))
+
+def ranker(input_sentence, list_of_sentences):
+	best_score = 0.0
+	best_sentence = ""
+	for sentence in list_of_sentences:
+		simi_score = simi(input_sentence, sentence)
+		if simi_score > best_score:
+			best_score = simi_score
+			best_sentence = sentence
+
+	return best_score, best_sentence
+
+def read_data(filename):
+	sentence_list = []
+	with open(filename, "r") as f:
+		for line in f:
+			sentence_list.append(line.strip())
+	return sentence_list
+
+sent_list = read_data("/Users/shayati/Documents/sem2/NN for NLP/project/hs_dataset_real/hearthstone/train_hs.in")
+query = "Magma Rager NAME_END 5 ATK_END 1 DEF_END 3 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END Free RARITY_END NIL"
+score, sentence = ranker(query, sent_list)
+print "ranker"
+print score
+print sentence
+matrix, dist = sentence_distance(query, sentence)
+#print("distance: " + str(dist))
+align(query, sentence, matrix, True)
+print(simi(query, sentence))
+print(dist)

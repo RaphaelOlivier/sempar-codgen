@@ -4,9 +4,10 @@ import sys
 import math
 import numpy as np
 
-def sentence_distance(first_sentence, second_sentence):
-	first_sentence = first_sentence.split(' ')
-	second_sentence = second_sentence.split(' ')
+def sentence_distance(first_sentence, second_sentence, is_list):
+	if not is_list:
+		first_sentence = first_sentence.split(' ')
+		second_sentence = second_sentence.split(' ')
 	m = len(first_sentence)+1
 	n = len(second_sentence)+1
 	matrix = np.zeros((n, m), dtype=int)
@@ -31,9 +32,10 @@ def sentence_distance(first_sentence, second_sentence):
 	#print matrix
 	return matrix, matrix[n-1][m-1]
 
-def align(first_sentence, second_sentence, matrix, print_flag):
-	first_sentence = first_sentence.split(' ')
-	second_sentence = second_sentence.split(' ')
+def align(first_sentence, second_sentence, matrix, print_flag, is_list):
+	if not is_list:
+		first_sentence = first_sentence.split(' ')
+		second_sentence = second_sentence.split(' ')
 	m = len(first_sentence)
 	n = len(second_sentence)
 	first_index_dict = {}
@@ -99,25 +101,32 @@ first = "a x b c e f"
 second = "a b d e v w x y"
 first = "NAME_BEGIN Assassin 's Blade NAME_END ATK_BEGIN 3 ATK_END DEF_BEGIN -1 DEF_END COST_BEGIN 5 COST_END DUR_BEGIN 4 DUR_END TYPE_BEGIN Weapon TYPE_END PLAYER_CLS_BEGIN Rogue PLAYER_CLS_END RACE_BEGIN NIL RACE_END RARITY_BEGIN Common RARITY_END DESC_BEGIN NIL DESC_END"
 second = "NAME_BEGIN Mark of the Wild NAME_END ATK_BEGIN -1 ATK_END DEF_BEGIN -1 DEF_END COST_BEGIN 2 COST_END DUR_BEGIN -1 DUR_END TYPE_BEGIN Spell TYPE_END PLAYER_CLS_BEGIN Druid PLAYER_CLS_END RACE_BEGIN NIL RACE_END RARITY_BEGIN Free RARITY_END DESC_BEGIN Give a minion Taunt and +2/+2 . ( +2 Attack/+2 Health ) DESC_END"
-matrix, dist = sentence_distance(first, second)
-#print("distance: " + str(dist))
-align(first, second, matrix, False)
+first_l = first.split(" ")
+second_l = second.split(" ")
+matrix, dist = sentence_distance(first_l, second_l, True)
+print("distance: " + str(dist))
+matrix, dist = sentence_distance(first, second, False)
+print("distance: " + str(dist))
+
 
 #	x = first_sentence
 #	x_m = second_sentence
-def simi(first_sentence, second_sentence):
-	max_score = max(len(first_sentence.split()), len(second_sentence.split()))
-	simi = 1.0 - (float(sentence_distance(first_sentence, second_sentence)[1])/float(max_score))
+def simi(first_sentence, second_sentence, is_list):
+	if not is_list:
+		max_score = max(len(first_sentence.split()), len(second_sentence.split()))
+		simi = 1.0 - (float(sentence_distance(first_sentence, second_sentence, False)[1])/float(max_score))
+	else:
+		max_score = max(len(first_sentence.split), len(second_sentence))
+		simi = 1.0 - (float(sentence_distance(first_sentence, second_sentence, True)[1])/float(max_score))
 	return simi
 
-simi_score = simi(first, second)
 #print ("simi score: " + str(simi_score))
 
-def ranker(input_sentence, list_of_sentences):
+def ranker(input_sentence, list_of_sentences, is_list):
 	best_score = 0.0
 	best_sentence = ""
 	for sentence in list_of_sentences:
-		simi_score = simi(input_sentence, sentence)
+		simi_score = simi(input_sentence, sentence, is_list)
 		if simi_score > best_score:
 			best_score = simi_score
 			best_sentence = sentence
@@ -133,12 +142,11 @@ def read_data(filename):
 
 sent_list = read_data("/Users/shayati/Documents/sem2/NN for NLP/project/hs_dataset_real/hearthstone/train_hs.in")
 query = "Magma Rager NAME_END 5 ATK_END 1 DEF_END 3 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END Free RARITY_END NIL"
-score, sentence = ranker(query, sent_list)
+score, sentence = ranker(query, sent_list, False)
 print "ranker"
 print score
 print sentence
-matrix, dist = sentence_distance(query, sentence)
+matrix, dist = sentence_distance(query, sentence, False)
 #print("distance: " + str(dist))
-align(query, sentence, matrix, True)
-print(simi(query, sentence))
+align(query, sentence, matrix, True, False)
 print(dist)

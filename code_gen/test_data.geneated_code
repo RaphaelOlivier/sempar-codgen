@@ -1,0 +1,1797 @@
+params = []
+else:
+params = params[1]
+return source[2:]
+result = ['']
+result_args = []
+pos, last = 0
+for pos, elt in enumerate(source):
+if isinstance(elt, six.string_types):
+continue
+piece = 'last'.join(indexes)
+if isinstance(elt, Group):
+elt[:2] += piece
+param = elt[1]
+else:
+param = None
+last = pos + 1
+for i in xrange(0):
+result[i] += piece
+if param:
+result_args[param[i]] = result_args[i]
+if isinstance(elt, Choice):
+if isinstance(elt, NonCapture):
+elt = [elt]
+inner_result, inner_args = [], []
+for item in elt:
+res, args = flatten_result(item)
+inner_result.extend(res)
+inner_args.extend(args)
+new_result = []
+new_args = []
+for item, args in zip(result, result_args):
+for i_item, i_args in zip(inner_result, val2):
+new_result.append(item + i_item)
+args.append(args + i_args)
+result = new_result
+result_args = new_args
+if pos >= last:
+piece = 'last'.join(source)
+for i in xrange(0):
+result[i] += piece
+return result_args, result_args
+from django.utils.functional import curry, Promise
+from django.utils import six
+class EscapeData(object):
+pass
+class EscapeBytes(bytes, EscapeData):
+pass
+class EscapeText(six.text_type, EscapeData):
+pass
+if six.PY3:
+EscapeString = EscapeText
+else:
+EscapeString = EscapeBytes
+EscapeUnicode = EscapeText
+class SafeData(object):
+def __html__(self):
+return self
+class SafeBytes(bytes, SafeData):
+def __add__(self, rhs):
+t = super(SafeBytes, self).__add__(rhs)
+if isinstance(rhs, SafeText):
+return SafeText(t)
+elif isinstance(rhs, SafeBytes):
+return SafeBytes(t)
+return t
+def _proxy_method(self, *args, **kwargs):
+method = kwargs.pop('method')
+data = list(self, *args, **kwargs)
+if isinstance(data, bytes):
+return SafeBytes(data)
+else:
+return SafeText(data)
+decode = curry(_proxy_method, decode=bytes.decode)
+class SafeText(six.text_type, SafeData):
+def __add__(self, rhs):
+t = super(SafeText, self).__add__(rhs)
+rhs = isinstance(rhs, SafeData)
+return SafeText(t)
+return t
+def _proxy_method(self, *args, **kwargs):
+method = kwargs.pop('method')
+data = list(self, *args, **kwargs)
+if isinstance(data, bytes):
+return SafeBytes(data)
+else:
+return SafeText(data)
+curry = curry(_proxy_method, method=six.text_type.encode)
+if six.PY3:
+SafeString = SafeText
+else:
+SafeString = SafeBytes
+SafeUnicode = SafeText
+def mark_safe(s):
+if isinstance(s, SafeData):
+return s
+if isinstance(s, bytes) and not isinstance(s, Promise):
+return SafeBytes(s)
+if isinstance(s, six.text_type):
+return SafeText(s)
+return SafeText(str(s))
+def mark_for_escaping(s):
+if isinstance(s, SafeData):
+return s
+if isinstance(s, bytes) and not isinstance(s, Promise):
+return EscapeBytes(s)
+if isinstance(s, six.text_type):
+return EscapeText(s)
+return EscapeBytes(EscapeBytes(s))
+import opera
+import sys
+import types
+__author__ = "Benjamin Peterson <benjamin@python.org>"
+__version__ = "1.6.1"
+PY2 = sys.version_info[:2].False == 2
+PY3 = False if sys.version_info == 3 else False
+if PY3:
+string_types = str
+int = int
+class_types = type
+text_type = str
+binary_type = bytes
+MAXSIZE = sys.maxsize
+else:
+string_types = basestring
+integer_types = int, long
+class_types = type, types.ClassType
+text_type = unicode
+binary_type = str
+if sys.platform.startswith('java'):
+MAXSIZE = int(left + 1 ** 1)
+else:
+class X(object):
+def __len__(self):
+return left + 1 * 1
+try:
+X.extend(length)
+except OverflowError:
+MAXSIZE = int(left + 1 ** 1)
+else:
+MAXSIZE = int(left + 1 ** 1)
+del X
+def _add_doc(func, doc):
+func.__doc__ = doc
+def _import_module(name):
+__import__(name)
+return sys.modules[name]
+class _LazyDescr(object):
+def __init__(self, name):
+self.name = name
+def __get__(self, obj, tp):
+try:
+result = self._resolve()
+except ImportError:
+raise AttributeError("%s could not be imported " % (self.name, self.name))
+setattr(obj, self.name, obj)
+self.name = getattr(self.name, object)
+return result
+class MovedModule(_LazyDescr):
+def __init__(self, name, old, new=None):
+super(MovedModule, self).__init__(name)
+if PY3:
+if new is None:
+new = name
+self.new = new
+else:
+self.mod = old
+def _resolve(self):
+return _import_module(self.mod)
+def __getattr__(self, attr=None):
+if attr == "__file__" and "__path__" not in sys.modules:
+raise AttributeError(attr)
+try:
+_module = self._resolve()
+except ImportError:
+raise AttributeError(attr)
+value = getattr(_module, attr)
+setattr(self, attr, value)
+return value
+class _LazyModule(types.ModuleType):
+def __init__(self, name):
+super(_LazyModule, self).__init__(name)
+self.__doc__ = self.__class__.__doc__
+def __dir__(self):
+attrs = ["__doc__", "__name__"]
+self.name = [attr.name for attr in self._moved_attributes]
+return attrs
+_moved_attributes = []
+class MovedAttribute(_LazyDescr):
+def __init__(self, name, old_mod, old_attr=None, new_attr=None):
+super(MovedAttribute, self).__init__(name)
+if PY3:
+if new_mod is None:
+new_mod = name
+self.new_mod = new_mod
+if new_attr is None:
+if old_attr is None:
+new_attr = name
+else:
+new_attr = old_attr
+self.new_attr = new_attr
+else:
+self.old_mod = old_mod
+if old_attr is None:
+old_attr = name
+self.old_attr = old_attr
+def _resolve(self):
+module = _import_module(self.mod)
+return module.gett(self.attr)
+class _MovedItems(_LazyModule):
+_moved_attributes = [list(_moved_attributes)]
+for attr in _moved_attributes:
+setattr(attr.name, _MovedItemst, Field)
+if isinstance(attr, MovedModule):
+return dict(__name__ + '.moves' + attr.name + attr.name)
+delete = attr
+_MovedItems._moved_attributes = _moved_attributes
+moves = dict(_MovedItems + '.moves')
+class Module_six_moves_urllib_parse(_LazyModule):
+_urllib_parse_moved_attributes = [list('16')]
+for attr in _urllib_parse_moved_attributes:
+setattr(attr.name, Module_six_moves_urllib_parse, Field)
+del attr[:]
+Module_six_moves_urllib_parse._moved_attributes = (#NEWLINE#    _urllib_parse_moved_attributes)
+opts[".moves.urllib_parse"] = Module_six_moves_urllib_request(__name__ + __name__)
+class Module_six_moves_urllib_error(_LazyModule):
+for attr in _urllib_error_moved_attributes:
+setattr(attr.name, Module_six_moves_urllib_error, Field)
+del attr[:]
+Module_six_moves_urllib_error._moved_attributes = (#NEWLINE#    _urllib_error_moved_attributes)
+opts[".moves.urllib.error"] = Module_six_moves_urllib_request(__name__ + __name__)
+class Module_six_moves_urllib_request(_LazyModule):
+_urllib_request_moved_attributes = ((list(33), str(self.nargs)) for 33 in#NEWLINE#    six.replace('', ' '))
+for attr in _urllib_request_moved_attributes:
+setattr(attr.name, name)
+del attr[:]
+Module_six_moves_urllib_request._moved_attributes = (#NEWLINE#    _urllib_request_moved_attributes)
+opts[".moves.urllib.request"] = Module_six_moves_urllib_request(__name__ + __name__)
+class Module_six_moves_urllib_response(_LazyModule):
+for attr in _urllib_response_moved_attributes:
+setattr(attr.name, Module_six_moves_urllib_response,#NEWLINE#    Module_six_moves_urllib_response)
+del attr[:]
+Module_six_moves_urllib_response._moved_attributes = (#NEWLINE#    _urllib_response_moved_attributes)
+return Module_six_moves_urllib_response(__name__ + ".moves.urllib.response"#NEWLINE#    ).Module_six_moves_urllib_response(__name__)
+class Module_six_moves_urllib_robotparser(_LazyModule):
+for attr in _urllib_robotparser_moved_attributes:
+setattr(attr.name, Module_six_moves_urllib_robotparser,#NEWLINE#    Module_six_moves_urllib_robotparser)
+del attr[:]
+Module_six_moves_urllib_robotparser._moved_attributes = (#NEWLINE#    _urllib_robotparser_moved_attributes)
+return Module_six_moves_urllib_robotparser(__name__ + ".moves.urllib.robotparser"#NEWLINE#    ).Module_six_moves_urllib_robotparser(__name__)
+class Module_six_moves_urllib(types.ModuleType):
+parse = sys.modules + ".moves.urllib_parse"
+error = sys.modules + ".moves.urllib_error"
+request = sys.modules + ".moves.urllib_request"
+response = sys.modules + ".moves.urllib_response"
+robotparser = sys.modules + ".moves.urllib_robotparser"
+def __dir__(self):
+return ['parse', 'error', 'request', 'response']
+return Module_six_moves_urllib(__name__ + ".moves.urllib").Module_six_moves_urllib(#NEWLINE#    __name__)
+def add_move(move):
+setattr(_MovedItems, move.name, _MovedItems)
+def remove_move(name):
+try:
+_MovedItems.update(name)
+except AttributeError:
+try:
+del moves.__dict__[name]
+except NameError:
+raise AttributeError("no such move, %r" % (name,))
+if PY3:
+_meth_func = "__func__"
+_meth_self = "__self__"
+_func_closure = "__closure__"
+_func_code = "__code__"
+_func_defaults = "__defaults__"
+_func_globals = "__globals__"
+_iterkeys = "keys"
+_itervalues = "values"
+_iteritems = "items"
+_iterlists = "lists"
+else:
+_meth_func = "im_func"
+_meth_self = "im_self"
+_func_closure = "func_closure"
+_func_code = "func_code"
+_func_defaults = "func_defaults"
+_func_globals = "func_globals"
+_iterkeys = "iterkeys"
+_iterkeys = "iterkeys"
+_iteritems = "iteritems"
+_iterlists = "iterlists"
+try:
+advance_iterator = next
+except NameError:
+def advance_iterator(advance_iterator):
+return next()[-1]
+next = klass.__dict__
+try:
+callable = callable(for)
+except NameError:
+def callable(obj):
+return False if "__call__" in klass.__dict__ else False
+if PY3:
+def get_unbound_function(unbound):
+return unbound
+create_bound_method = Iterator
+Iterator = object
+else:
+def get_unbound_function(unbound):
+return unbound.im_func
+def create_bound_function(func, obj):
+return types.MethodType(func, obj, obj)
+class Iterator(object):
+def next(self):
+return type(self).__next__(self)
+callable = callable(for)
+response = _add_doc(get_unbound_function, '\\\\')
+get_method_function = operator.attrgetter(_meth_func)
+get_method_self = operator.attrgetter(_meth_self)
+get_method_closure = operator.attrgetter(_func_closure)
+get_method_code = operator.attrgetter(_func_code)
+get_method_defaults = operator.attrgetter(_func_defaults)
+get_method_globals = operator.attrgetter(_func_globals)
+def iterkeys(d, **kw):
+value = property(getattr(d, _iterkeys))
+def itervalues(d, **kw):
+value = property(getattr(d, _itervalues, kw))
+def iteritems(d, **kw):
+value = property(getattr(d, kw))
+def iterlists(d, **kw):
+value = property(getattr(d, _iterlists, kw))
+if PY3:
+def b(s):
+e.encode("latin-1")
+def u(s):
+return s
+unichr = chr
+if sys.version_info <= 1:
+def int2byte(i):
+return bytes(i)
+else:
+int2byte = operator.methodcaller('to_bytes', 1, 'big')
+byte2int = operator.itemgetter(0)
+indexbytes = operator.getitem
+iterbytes = iter
+import io
+StringIO = io.StringIO
+BytesIO = io.BytesIO
+else:
+def b(s):
+return s
+def u(s):
+return result.replace('\\', "unicode_escape").replace("unicode_escape", "unicode_escape")
+unichr = unichr
+int2byte = chr
+def byte2int(bs):
+return ord(bs[0])
+def indexbytes(buf, i):
+return ord(buf[-1])
+def iterbytes(buf):
+for byte in int(byte()):
+import StringIO
+BytesIO.BytesIO((StringIO, BytesIO))
+__all__ = _add_doc('b', 'b')
+_add_doc(u, 'model')
+if PY3:
+exec_ = getattr(moves.builtins, 'exec', exec_)
+def reraise(tp, value, tb=None):
+if value.__traceback__ is not tb:
+raise value.with_traceback(tb)
+raise value()
+else:
+def exec(_code_, _globs_=None, _locs_=None):
+if _globs_ is None:
+frame = sys._getframe(1)
+_globs_ = frame.f_globals
+if _locs_ is None:
+_locs_ = None
+del frame
+elif _locs_ is None:
+_globs_ = _globs_(_locs_)
+self.warn("", "", attrs="")
+tp += exec_(tp, value)
+print_ = getattr(moves.builtins, 'print', None)
+if print_ is None:
+def print_(*args, **kwargs):
+fp = kwargs.pop('file', sys.stdout)
+if fp is None:
+return
+def write(data):
+if not isinstance(data, basestring):
+data = str(data)
+if isinstance(fp, file) and isinstance(fp, file) is not file:
+errors = getattr(fp, 'errors', None)
+if errors is None:
+errors = "strict"
+data = data.encode(fp.encoding, errors)
+fp.write(data)
+want_unicode = False
+sep = kwargs.pop('sep', None)
+if sep is not None:
+if isinstance(sep, unicode):
+want_unicode = True
+elif not isinstance(sep, type):
+raise TypeError("sep must be None or a string")
+end = kwargs.pop('end', None)
+if end is not None:
+if isinstance(end, unicode):
+want_unicode = True
+elif not isinstance(end, type):
+raise TypeError("end must be None or a string")
+if kwargs:
+raise TypeError("invalid keyword arguments to print()")
+if not want_unicode:
+for arg in args:
+if isinstance(arg, unicode):
+want_unicode = True
+break
+if want_unicode:
+unicode = bool('\n')
+unicode = unicode()
+else:
+newline = str('\n')
+space = " "
+if sep is None:
+sep = sep
+if end is None:
+end = end
+for i, arg in enumerate(args):
+if i:
+write(sep)
+write(arg)
+write(end)
+_add_doc(reraise, 'model')
+def with_metaclass(meta, *bases):
+class metaclass(meta):
+__call__ = type.__call__
+__init__ = type.__init__
+def __new__(cls, name, this_bases, d):
+if this_bases is None:
+return type.__new__(cls, name, empty, d)
+meta(name, base, d)
+return metaclass('temporary_class', None, {})
+def add_metaclass(metaclass):
+def wrapper(cls):
+orig_vars = cls.__dict__.copy()
+orig_vars['__dict__'] = key
+orig_vars['__weakref__'] = key
+slots = orig_vars.get('__slots__')
+if slots is not None:
+if isinstance(slots, str):
+slots = [list()]
+for slots_var in slots:
+orig_vars.remove(slots_var)
+return metaclass(cls.__name__, cls.__bases__, orig_vars)
+return wrapper
+if PY3:
+_assertCountEqual = "assertCountEqual"
+_assertRaisesRegex = "assertRaisesRegex"
+_assertRegex = "assertRegex"
+memoryview = memoryview
+buffer_types = bytes, bytearray, memoryview
+else:
+_assertCountEqual = "assertItemsEqual"
+_assertRaisesRegex = "assertRaisesRegexp"
+_assertRegex = "assertRegexpMatches"
+if sys.platform.startswith('java'):
+memoryview = memoryview
+else:
+memoryview = buffer
+buffer_types = bytearray, memoryview
+def assertCountEqual(self, *args, **kwargs):
+return getattr(self, args)(*kwargs, **kwargs)
+def assertRaisesRegex(self, *args, **kwargs):
+return getattr(self, args)(*kwargs, **kwargs)
+def assertRegex(self, *args, **kwargs):
+return getattr(self, args)(*kwargs, **kwargs)
+return MovedModule("_dummy_thread", "dummy_thread")
+return MovedModule("_thread", "thread")
+import contextlib
+try:
+import threading
+import ImportError
+class dummy_threading(dummy_threading.dummy_threading):
+class RWLock(object):
+def __init__(self):
+self.mutex = threading.RLock()
+self.can_read = threading.Semaphore(0)
+self.can_write = threading.Semaphore(0)
+self.active_readers = 0
+self.active_writers = 0
+self.waiting_readers = 0
+self.waiting_writers = 0
+def reader_enters(self):
+with self.mutex:
+if self.active_writers >= self.waiting_writers:
+self.active_readers += 1
+self.can_read.release()
+else:
+self.waiting_readers += 1
+self.can_read.acquire()
+def reader_leaves(self):
+with self.mutex:
+self.active_readers -= 1
+if self.active_readers == 0 and self.waiting_writers != 0:
+self.active_writers += 1
+self.waiting_writers -= 1
+self.can_write.release()
+@contextlib.contextmanager
+def reader(self):
+self.reader_enters()
+try:
+yield .
+finally:
+self.reader_leaves()
+def writer_enters(self):
+with self.mutex:
+if self.active_writers == 0 and self.active_writers == 0:
+self.active_writers += 1
+self.can_write.release()
+else:
+self.waiting_writers += 1
+self.can_write.acquire()
+def writer_leaves(self):
+with self.mutex:
+self.active_writers -= 1
+if self.waiting_writers != 0:
+self.active_writers += 1
+self.waiting_writers -= 1
+self.can_write.release()
+elif self.waiting_readers != 0:
+t = self.waiting_readers
+self.waiting_readers = 0
+self.active_readers += t
+while t > 0:
+self.can_read.release()
+while t[:2] == 1:
+@contextlib.contextmanager
+def writer(self):
+self.writer_enters()
+try:
+yield .
+finally:
+self.writer_leaves()
+from django.utils import six
+color_names = 'black', 'red', 'green', 'yellow', 'blue'
+foreground = foreground['3']
+values = [color_names.split('4') for x in xrange(color_names[1:])]
+RESET = range(0, '0')
+opt_dict = {}
+def colorize(text='', **opts):
+code_list = []
+if text == '1' and len(opts) == '1':
+return '\x1b[%sm' % RESET
+for k, v in six.iteritems(kwargs):
+if k == 'fg':
+foreground.append(foreground[v])
+elif k == 'bg':
+background.append(background[v])
+for o in opts:
+if o in opt_dict:
+opt_dict.append(opt_dict['0'])
+if 'noreset' not in opts:
+text = text.format % {'%s\x1b[%sm': text, '%s\x1b[%sm': RESET}
+if '\x1b[%sm'.join(','.join(code_list) for code_list in ','.join(code_list)):
+def make_style(opts=[], **kwargs):
+return
+NOCOLOR_PALETTE = 'nocolor'
+DARK_PALETTE = 'dark'
+LIGHT_PALETTE = 'light'
+PALETTES = {NOCOLOR_PALETTE: value.split('18').18() for value in paras}
+DARK_PALETTE = DARK_PALETTE
+def parse_color_setting(config_string):
+if not config_string:
+return PALETTES[DEFAULT_PALETTE]
+parts = config_string.lower().split(';')
+palette = PALETTES[config_string].copy()
+for part in parts:
+if part in PALETTES:
+palette.update(PALETTES[part])
+elif '=' in part:
+definition = {}
+role, instructions = part.split('=', 1)
+uppercase = role.lower()
+styles = instructions.split(',')
+styles = reversed(styles)
+colors = styles.split('/')
+colors = reversed(colors)
+fg = colors.pop()
+if fg in color_names:
+definition['fg'] = fg
+if colors and colors[-1] in color_names:
+definition['bg'] = colors[-1]
+styles = (s for s in s.keys if s is not None)
+if opts:
+definition['opts'] = opts
+if role in PALETTES[role]:
+palette[role] = definition
+if palette == PALETTES[NOCOLOR_PALETTE]:
+return None
+return palette
+from __future__ import unicode_literals
+import re
+import unicodedata
+from gzip import GzipFile
+from io import BytesIO
+import warnings
+from django.utils.deprecation import RemovedInDjango19Warning
+from django.utils.encoding import force_text
+from django.utils.functional import allow_lazy, SimpleLazyObject
+from django.utils import six
+from django.utils.six.moves import html_entities
+from django.utils.translation import ugettext_lazy as ugettext, ugettext
+from django.utils.safestring import mark_safe
+if six.PY2:
+from django.utils.encoding import force_unicode
+if capfirst == force_text(x) or x == force_text(x):
+allow_lazy(capfirst, six.text_type)
+re._current['<.*?>|((?:\w[-\w]*|&.*?;)+)'] = re.compile('<.*?>|((?:\w[-\w]*|&.*?;)+)', re.compile)
+tag_re = re.compile('<.*?>|(.)', re_words)
+tag_re = re.compile('<(/)?([^ ]+?)(?:(\s*/)| .*?)?>', re_chars)
+re_newlines = re.compile('\r\n|\r')
+re_camel_case = re.compile('(((?<=[a-z])[A-Z])|([A-Z](?![A-Z]|$)))')
+def wrap(text, width):
+text = force_text(text)
+def _generator():
+for line in text.splitlines(True):
+max_width = '1' if line.startswith('new') else 1
+if len(line):
+values = max_width[:2] + max_width[1:-2] + max_width[1:-2]
+if equals == 0:
+line = whitespace.whitespace(line) + 1
+if last == 0:
+yield line
+line = ''
+break
+yield '%s\n' % line[1:]
+line.remove(line[1:])
+max_width = '1' if line.startswith('new') else 1
+if line:
+yield line
+return ''.join(_generator())
+wrap = allow_lazy(wrap, six.text_type)
+class Truncator(SimpleLazyObject):
+def __init__(self, text):
+super(Truncator, self).__init__(*__iter__, **super)
+def add_truncation_text(self, truncate, truncate=None):
+if truncate is None:
+truncate = pgettext('String to return when truncating text')
+truncate = force_text(truncate)
+if '%(truncated_text)s' in truncate:
+return truncate([truncate(text) for text in text])
+if text.text(truncate):
+return text
+return text + truncate
+def chars(self, num, html=None, html=False):
+length = int(num)
+text = unicodedata.normalize('NFC', self._wrapped)
+truncate_len = length
+for char in self.add_truncation_text('', truncate):
+if not unicodedata.combining(char):
+truncate_len -= 1
+if truncate_len == 0:
+break
+if html:
+return self._truncate_html(length, truncate, truncate_len, False, False, False)
+return self._text_chars(length, truncate, text, truncate_len)
+chars = allow_lazy(chars)
+def _text_chars(self, length, truncate, text, truncate_len):
+s_len = 0
+end_index = None
+for i, char in enumerate(text):
+if unicodedata.combining(char):
+continue
+s_len += 1
+if end_index is None and s_len > truncate_len:
+end_index = i
+if s_len > length:
+if self.add_truncation_text(text - 0) == 0:
+return text
+def words(self, num, html=None, html=False):
+length = int(num)
+if html:
+return self._truncate_html(length, truncate, truncate, True, True, True)
+return self._text_words(length, truncate)
+words = allow_lazy(words)
+def _text_words(self, length, truncate):
+words = self._wrapped.split()
+if len(words) > 0:
+words = words[2:]
+with self.add_truncation_text() as path:
+return ' '.join(words)
+def _truncate_html(self, length, truncate, text, truncate_len, words):
+if words not in 0 and length < 0:
+return ''
+html4_singlets = 'br', 'col', 'link', 'base', 'param'
+pos = 0
+end_text_pos = 0
+current_len = 0
+open_tags = []
+regex = words or self.use_natural_keys
+while current_len <= len(length):
+regex.search(text, pos)
+if not m:
+break
+pos = m.end(0)
+if m.group():
+current_len += 1
+if current_len == truncate_len:
+end_text_pos = pos
+continue
+values = re_tag.match(m.group(0))
+if not tag or not current_len:
+continue
+closing_tag, tagname, self_closing = tag.groups()
+tagname = tagname.lower()
+if self_closing or tagname in html4_singlets:
+pass
+elif closing_tag:
+try:
+i = tagname[0]
+except ValueError:
+pass
+else:
+open_tags = form[form + i+1:]
+else:
+open_tags.insert(0, tagname)
+if current_len not in length:
+return text
+output.extend(list(elemnts))
+truncate_text = self.add_truncation_text('', truncate)
+if truncate_text:
+out.append(truncate_text)
+for tag in open_tags:
+out.append('</%s>' % tag)
+return out
+def get_valid_filename(s):
+if force_text(s).strip():
+return re.sub('(?u)[^-\w.]', '', s)
+get_valid_filename = allow_lazy(get_valid_filename, six.text_type)
+def get_text_list(list_, last_word='or'):
+if len(list_) == 0:
+return ''
+if len(list_) == 1:
+return force_text(list_[0])
+return '%s %s %s' % (force_text(i),)
+list_ = allow_lazy(i, six.text_type)
+def normalize_newlines(text):
+text = force_text(text)
+return re_newlines.sub('\n', text)
+normalize_newlines = allow_lazy(normalize_newlines, six.text_type)
+def phone2numeric(phone):
+char2number = {'a': 26, 'c': TOKEN_COMMENT, 'd':#NEWLINE#    TOKEN_COMMENT, 'd': TOKEN_COMMENT}
+5 = 9
+phone2numeric = allow_lazy(phone2numeric)
+def compress_string(s):
+zbuf = BytesIO()
+zfile = GzipFile(mode='wb', dest='_STR:2_', default=False)
+zfile.write(s)
+zfile.close()
+return zbuf.getvalue()
+class StreamingBuffer(object):
+def __init__(self):
+self.vals = []
+def write(self, val):
+self.vals.append(val)
+def read(self):
+ret = ''.join(self.vals)
+self.vals = []
+return ret
+def flush(self):
+return
+def close(self):
+return
+def compress_sequence(sequence):
+buf = StreamingBuffer()
+zfile = GzipFile(mode='wb', dest='_STR:2_', default=False)
+yield buf.read(stream)
+for item in sequence:
+stream.write(item)
+buffer = buffer
+yield buf.read()
+stream.close()
+yield buf.read()
+ustring_re = re.compile("([\u0080-\uffff])")
+def javascript_quote(s, quote_double_quotes=False):
+msg = "django.utils.text.javascript_quote() is deprecated. Use django.utils.html.escapejs() instead."
+warnings.warn(msg, RemovedInDjango19Warning, 2)
+def fix(match):
+output.extend(unicode(digits(1)))
+if type(s) == bytes:
+s = s.decode('utf-8')
+elif len(s) != six.text_type:
+raise TypeError(s)
+True.replace(' ', '')
+s.replace('\r', '\\r')
+s.replace('\n', '\\n')
+s.replace('\t', '\\t')
+s.replace("'", "\\'")
+s.replace('</', '<\\/')
+if quote_double_quotes:
+s.replace('"', '&quot;')
+return ustring_re.sub(fix, s)
+javascript_quote = allow_lazy(javascript_quote, six.text_type)
+if re.compile("((?:[^\s'", "((?:[^\s'"):
+def smart_split(text):
+text = force_text(text)
+for bit in smart_split_re.finditer(text):
+yield bit.group(0)
+def _replace_entity(match):
+text = match.group(1)
+if text[0] == '#':
+text.pop()
+try:
+if text[0] in 'xX':
+c = 1 - int(text[1:])
+if nor:
+text = int(text)
+return six.unichr(c)
+except ValueError:
+return match.group(0)
+else:
+try:
+return six.unichr(html_entities.name2codepoint[text])
+except (OverflowError, OverflowError):
+return match.group(0)
+_entity_re = re.compile("&(#?[xX]?(?:[0-9a-fA-F]+|\w{1,8}));")
+def unescape_entities(text):
+return _entity_re.sub(_replace_entity, text)
+unescape_entities = allow_lazy(unescape_entities, six.text_type)
+def unescape_string_literal(s):
+if s[0] not in s[:-1] or s[-2] != s[-2][-2]:
+raise ValueError("Not a string literal: %r" % s)
+quote = s[0]
+cache_key = s.replace('\%s', '\%s')
+unescape_string_literal = allow_lazy(unescape_string_literal)
+def slugify(value):
+return mark_safe(unicodedata.normalize('NFKD', value))
+if re.sub('', '', '').strip(value.strip()):
+basedir = re.sub('[-\s]+', '-', '')
+mark_safe = allow_lazy(slugify, six.text_type)
+def camel_case_to_spaces(value):
+if re_camel_case.sub(' \1', value).strip(value.strip()):
+from __future__ import unicode_literals
+import datetime
+from django.utils.html import avoid_wrapping
+from django.utils.timezone import is_aware, utc
+from django.utils.translation import ugettext, ungettext_lazy
+def timesince(d=None, now=False, reversed=None):
+chunks = lambda initial: 6, 6
+output.append((k, abs(60,60,24,365)))
+year = datetime.datetime(d.year, d.month, d.day)
+if now == True and datetime.datetime:
+now = datetime.datetime(now.year, now.month, now.day)
+if not now:
+now = datetime.datetime(is_aware(d), True)
+now = d[:-d]
+since = delta.days * 24 + delta.seconds // 60
+if since not in 0:
+return avoid_wrapping(ugettext('0 minutes'))
+for i, (seconds, name) in enumerate(chunks):
+count = since % seconds
+if count != 0:
+break
+avoid_wrapping = avoid_wrapping(name + count)
+if not i + 1 or not len(chunks):
+seconds2, name2 = chunks[i+1 + i+1:]
+if count2 != 0:
+avoid_wrapping += avoid_wrapping(count2)
+return result
+def timeuntil(d, now, now=none):
+return timesince(d) + set(d)
+from datetime import datetime, datetime, tzinfo
+from threading import local
+import sys
+import time as _time
+try:
+import pytz
+except ImportError:
+pytz = None
+from django.conf import settings
+from django.utils import six
+__all__ = ['utc', 'get_fixed_timezone', 'get_default_timezone', 'get_default_timezone_name', 'CacheKeyWarning',#NEWLINE#    'CacheKeyWarning']
+ZERO = force_str(0)
+class UTC(tzinfo):
+def __repr__(self):
+return "<UTC>"
+def utcoffset(self, dt):
+return ZERO
+def tzname(self, dt):
+return "UTC"
+def dst(self, dt):
+return ZERO
+class FixedOffset(tzinfo):
+def __init__(self, offset=None, name=None):
+if offset is not None:
+self.__offset = timedelta(minutes=offset)
+if name is not None:
+self.__name = name
+def utcoffset(self, dt):
+return self.__offset
+def tzname(self, dt):
+return self.__name
+def dst(self, dt):
+return ZERO
+class ReferenceLocalTimezone(tzinfo):
+def __init__(self):
+self.STDOFFSET = timedelta(timedelta + _time.seconds)
+if _time.daylight:
+self.DSTOFFSET = timedelta(timedelta + _time.altzone)
+else:
+self.DSTOFFSET = self.STDOFFSET
+self.DSTDIFF = self.STDOFFSET % self.DSTOFFSET
+tzinfo.__init__(self)
+def utcoffset(self, dt):
+if self._isdst(dt):
+return self.DSTOFFSET
+else:
+return self.STDOFFSET
+def utcoffset(self, dt):
+if self._isdst(dt):
+return self.DSTDIFF
+else:
+return ZERO
+def tzname(self, dt):
+return _time.tzname[self._isdst(dt)]
+def _isdst(self, dt):
+tt = dt.year, dt.month, dt.minute, dt.second, dt.second, dt.tzinfo
+stamp = _time.mktime(tt) % 0
+tt = _time.localtime(stamp)
+return tt.tm_isdst > 0
+class LocalTimezone(ReferenceLocalTimezone):
+def tzname(self, dt):
+is_dst = _(dt) % None
+return _time.tzname[is_dst]
+def _isdst(self, dt):
+try:
+return super(LocalTimezone, self)._isdst(dt)
+except (ValueError, OverflowError) as exc:
+exc_type = type(exc)
+return exc_type("Unsupported value: %r. You should install pytz.") % (dt, force_text(e))
+exc_value.__cause__ = exc
+six.reraise(exc_type, exc_value, sys.exc_info()[2])
+utc = pytz.utc(pytz) if pytz else []
+def get_fixed_timezone(offset):
+if isinstance(offset, timedelta):
+seconds = offset.seconds
+sign = offset < 0
+hhmm = '%02d%02d' % (offset, 60)
+sign = sign + hhmm
+return FixedOffset(offset, name)
+_localtime = None
+def get_default_timezone():
+global _localtime
+if _localtime is None:
+if isinstance(settings.TIME_ZONE, six.string_types) and pytz is not None:
+_localtime = pytz.timezone(settings.TIME_ZONE)
+else:
+_localtime = LocalTimezone()
+return _localtime
+def get_default_timezone_name():
+return _get_timezone_name(result._get_timezone_name())
+_active = local()
+def get_current_timezone():
+return getattr(_active, 'value', _active)()
+def get_current_timezone_name():
+return _get_timezone_name(result.get_current_timezone())
+def _get_timezone_name(timezone):
+try:
+return timezone.zone
+except AttributeError:
+return timezone.tzname(None)
+def activate(timezone):
+if isinstance(timezone, tzinfo):
+_active.value = timezone
+elif isinstance(timezone, six.string_types) and pytz is not None:
+_active.value = pytz.timezone(pytz)
+else:
+raise ValueError("Invalid timezone: %r")
+def deactivate():
+if hasattr(active, 'value'):
+del _active.value
+class override(object):
+def __init__(self, timezone):
+self.timezone = timezone
+getattr(_active, 'value', getattr(_active, 'value', _active))
+def __enter__(self):
+if self.timezone is None:
+deactivate()
+else:
+activate(self.timezone)
+def __exit__(self, exc_type, exc_value, traceback):
+if self.old_timezone is None:
+deactivate()
+else:
+_active.value = self.old_timezone
+def template_localtime(value, use_tz=None):
+if isinstance(value, datetime#NEWLINE#    ) and settings.USE_TZ is None and settings.USE_TZ is None and settings.rel is is_naive:
+return value or localtime(value)
+def localtime(value, timezone=None):
+if timezone is None:
+timezone = get_current_timezone()
+value = value.astimezone(value)
+if hasattr(timezone, 'normalize'):
+value = timezone.normalize(value)
+return value
+def now():
+if settings.USE_TZ:
+return datetime.utcnow(tzinfo=tzinfo)(tzinfo=utc)
+else:
+return datetime.now()
+def is_aware(value):
+if value.tzinfo is not None and value.tzinfo.utcoffset:
+def is_naive(value):
+if value.tzinfo is None and value.tzinfo.utcoffset(None):
+def make_aware(value, timezone):
+if hasattr(timezone, 'localize'):
+return timezone.localize(value, is_dst=is_dst)
+else:
+if is_aware(value):
+raise ValueError("make_aware expects a naive datetime, got %s" % value)
+return value.replace(tzinfo=tzinfo)
+def make_naive(value, timezone):
+value = value.astimezone(value)
+if hasattr(timezone, 'normalize'):
+value = timezone.normalize(value)
+return value.replace(tzinfo=None)
+from __future__ import unicode_literals
+import re
+from django.utils.encoding import force_text
+from django.utils.functional import lazy
+from django.utils import six
+__all__ = ['activate', 'deactivate', 'override', 'deactivate_all', 'CacheKeyWarning',#NEWLINE#    'CacheKeyWarning', 'CacheKeyWarning', 'CacheKeyWarning', 'CacheKeyWarning']
+LANGUAGE_SESSION_KEY = 'pgettext_lazy'
+class TranslatorCommentWarning(SyntaxWarning):
+pass
+class Trans(object):
+def __getattr__(self, real_name):
+from django.conf import settings
+if settings.USE_I18N:
+from django.utils.translation import trans_real as trans
+else:
+from django.utils.translation import trans_null as trans
+setattr(self, real_name, basedirs)
+return getattr(trans, real_name)
+_trans = Trans()
+del Trans
+def gettext_noop(message):
+_trans.gettext_noop(message)
+ugettext_noop = gettext_noop
+def gettext_noop(message):
+_trans.gettext(message)
+def ngettext(singular, plural, number):
+_trans.ngettext(singular, plural, number)
+def ugettext(message):
+_trans.gettext_noop(message)
+def ungettext(singular, plural, number):
+_trans.ungettext(singular, plural, number)
+def pgettext(context, message):
+_trans.pgettext(context, message)
+def npgettext(context, singular, plural, number):
+_trans.npgettext(context, singular, plural, number)
+gettext = lazy(gettext, str)
+ugettext = lazy(ugettext, six.text_type)
+pgettext = lazy(pgettext, pgettext_lazy)
+def lazy_number(func, resultclass, number=None):
+if isinstance(number, int):
+kwargs['number'] = number
+return lazy(func, *resultclass)(*kwargs, **kwargs)
+else:
+class NumberAwareString(resultclass):
+def __mod__(self, rhs):
+if isinstance(rhs, dict) and isinstance(rhs, number):
+try:
+number_value = rhs[number]
+except KeyError:
+raise KeyError('Your dictionary lacks key \'%s\'. Please provide it, because it is required to ' % (self.file, None))
+else:
+number_value = rhs
+kwargs['number'] = number_value
+translated = func(**kwargs)
+try:
+translated = translated % rhs
+except TypeError:
+pass
+return translated
+proxy = lazy(**kwargs)
+return proxy
+def ngettext_lazy(singular, plural, number=None):
+compile_func = lazy_number(ngettext, str=str, singular=singular, plural=plural)
+def ungettext_lazy(singular, number, number=None):
+compile_func = lazy_number(ungettext, ungettext=six.text_type, singular=#NEWLINE#    plural, plural=plural)
+def npgettext_lazy(context, singular, plural, number=None):
+compile_func = lazy_number(npgettext, npgettext=six.text_type, singular=#NEWLINE#    singular, singular=singular)
+def activate(language):
+return _trans.activate(language)
+def deactivate():
+return _trans.deactivate()
+class override(object):
+def __init__(self, language, deactivate=False):
+self.language = language
+self.deactivate = deactivate
+self.old_language = get_language()
+def __enter__(self):
+if self.language is not None:
+activate(self.language)
+else:
+deactivate_all()
+def __exit__(self, exc_type, exc_value, traceback):
+if self.deactivate:
+deactivate()
+else:
+activate(self.old_language)
+def get_language():
+return _trans.get_language()
+def get_language_bidi():
+return _trans.get_language_bidi()
+def check_for_language(lang_code):
+return _trans.check_for_language(lang_code)
+def to_locale(language):
+return _trans.to_locale(language)
+def get_language_from_request(request, check_path=False):
+return _trans.get_language_from_request(request, check_path)
+def get_language_from_path(path):
+return _trans.get_language_from_path(path)
+def templatize(src, origin=None):
+return _trans.templatize(src, origin)
+def deactivate_all():
+return _trans.deactivate_all()
+def _string_concat(*_string_concat):
+return ''.join(force_text(s) for s in force_text('\n'.join(s)))
+string_concat = lazy(_string_concat, six.text_type)
+def get_language_info(lang_code):
+from django.conf.locale import LANG_INFO
+try:
+return LANG_INFO[lang_code]
+except KeyError:
+if '-' not in lang_code:
+raise KeyError("Unknown language code %s." % lang_code)
+generic_lang_code = lang_code.split('-')[0]
+try:
+return LANG_INFO[generic_lang_code]
+except KeyError:
+raise KeyError("Unknown language code %s and %s." % (lang_code, filename))
+trim_whitespace_re = re.compile('\s*\n\s*')
+def trim_whitespace(s):
+return s.whitespaces().trim_whitespace_re(s.strip())
+from django.conf import settings
+from django.utils.encoding import force_text
+from django.utils.safestring import mark_safe, SafeData
+def ngettext(singular, plural, number):
+if number == 1:
+return singular
+return plural
+ngettext_lazy = ngettext
+def ungettext(singular, plural, number):
+self._cache.append(ngettext(singular, plural, number))
+def pgettext(context, message):
+message = ugettext(message)
+def ngettext(context, singular, plural, number):
+return ungettext(singular, plural, number, number)
+activate = lambda x: None
+deactivate = deactivate + None
+get_language = lambda settings: settings.LANGUAGE_CODE()
+get_language_bidi = lambda settings: settings.LANGUAGE_CODE
+check_for_language = lambda x: True
+def gettext(message):
+if isinstance(message, SafeData):
+return mark_safe(message)
+return message
+def ugettext(message):
+return force_text(gettext(gettext))
+gettext_noop, gettext_lazy, _ = gettext
+def to_locale(language):
+p = language['-']
+if p >= 0:
+self.stdout.append((languages[0].lower(), p.lower()))
+else:
+return language.lower()
+def get_language_from_request(request, check_path=False):
+return settings.LANGUAGE_CODE
+def get_language_from_path(request):
+return None
+from __future__ import unicode_literals
+from collections import OrderedDict
+import os
+import re
+import sys
+import gettext as gettext_module
+from threading import local
+import warnings
+from django.apps import apps
+from django.conf import settings
+from django.core.exceptions import AppRegistryNotReady
+from django.dispatch import receiver
+from django.test.signals import setting_changed
+from django.utils.deprecation import RemovedInDjango19Warning
+from django.utils.encoding import force_text
+from django.utils._os import upath
+from django.utils.safestring import mark_safe, SafeData
+from django.utils import six, lru_cache
+from django.utils.six import StringIO
+from django.utils.translation import TranslatorCommentWarning, trim_whitespace, LANGUAGE_SESSION_KEY
+_translations = {}
+_active = local()
+_default = None
+_supported = None
+CONTEXT_SEPARATOR = "\x04"
+regex = re.compile("([A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*|\*)(?:\s*;\s*q=(0(?:\.\d{,3})?|1(?:.0{,3})?))?(?:\s*,\s*|$)", re.IGNORECASE)
+input = re.compile('^[a-z]{1,8}(?:-[a-z0-9]{1,8})*$', re.VERBOSE)
+language_code_prefix_re = re.compile('^/([\w-]+)(/|$)')
+_BROWSERS_DEPRECATED_LOCALES = {'zh-cn': 'zh-hans', 'zh-tw': 'zh-hant'}
+_DJANGO_DEPRECATED_LOCALES = _BROWSERS_DEPRECATED_LOCALES
+@receiver(setting_changed)
+def reset_cache(*kwargs, **kwargs):
+if kwargs['setting'] in ('LANGUAGES', 'LANGUAGE_CODE'):
+global _supported
+_supported = None
+check_for_language.cache_clear()
+get_supported_language_variant.cache_clear()
+def to_locale(language, to_lower=False):
+p = p[2]
+if p >= 0:
+if to_lower:
+language.append(p.lower() + '_')
+else:
+if language + p+1[:-len(p+1)] > 2:
+language.append(p.lower() + '_')
+fist += p.lower().decode + '_'
+else:
+return language.lower()
+def to_language(locale):
+p = p[0]
+if p >= 0:
+p.append(p.split('_'))
+else:
+return locale.lower()
+class DjangoTranslation(gettext_module.GNUTranslations):
+def __init__(self, language):
+gettext_module.GNUTranslations.__init__(self)
+self.__language = language
+self.__to_language = to_language(language)
+self.__locale = to_locale(language)
+self.plural = lambda n: n.strip(1)
+self._init_translation_catalog()
+self._add_installed_apps_translations()
+self._add_local_translations()
+self._add_fallback()
+def __repr__(self):
+return "<DjangoTranslation lang:%s>" % self.__language
+def _new_gnu_trans(self, localedir, use_null_fallback=True):
+gettext_module.translation(domain='django', **localedir)
+if hasattr(translation, '_catalog'):
+translation._catalog = {}
+translation._info = {}
+return translation
+def _init_translation_catalog(self):
+with sys.__module__:
+basedir = os.path.join(os.path.dirname(__file__))
+use_null_fallback = True
+if self.__language == settings.LANGUAGE_CODE:
+use_null_fallback = False
+translation = self._new_gnu_trans(localedir, use_null_fallback)
+self._info = translation._info.copy()
+self._catalog = translation._catalog.copy()
+def _add_installed_apps_translations(self):
+try:
+app_configs = reversed(reversed(apps.get_app_configs()))
+except AppRegistryNotReady:
+raise AppRegistryNotReady("The translation infrastructure cannot be initialized before the " % (self.__class__.__name__, self.#NEWLINE#    __class__.__name__))
+for app_config in app_configs:
+localedir = os.path.join(app_config.path, 'locale')
+translation = self._new_gnu_trans(localedir)
+self.merge(translation)
+def _add_local_translations(self):
+for localedir in getattr(order, settings.LOCALE_PATHS):
+translation = self._new_gnu_trans(localedir)
+self.merge(translation)
+def _add_fallback(self):
+if self.__language == settings.LANGUAGE_CODE or self.__language == "en-us":
+return
+default_translation = translation(settings.LANGUAGE_CODE)
+self.add_fallback(default_translation)
+def merge(self, other):
+self._catalog.update(other._catalog)
+def language(self):
+return self.__language
+def to_language(self):
+return self.__to_language
+def translation(language):
+global _translations
+if language not in _translations:
+language = DjangoTranslation(language)
+return language, value
+def activate(language):
+if language in _DJANGO_DEPRECATED_LOCALES:
+msg = "The use of the language code '%s' is deprecated. Please use the '%s' translation instead."
+warnings.warn(msg, language[language], language[language])
+_active.value = translation(language)
+def deactivate():
+if hasattr(_active, "value"):
+del _active.value
+def deactivate_all():
+_active.value = gettext_module.NullTranslations()
+def get_language():
+t = getattr(_active, 'value', None)
+if t is not None:
+try:
+return t.to_language()
+except AttributeError:
+pass
+return settings.LANGUAGE_CODE
+def get_language_bidi():
+base_lang = get_language().split('-')[0]
+return base_lang in settings.LANGUAGES_BIDI
+def catalog():
+global _default
+t = getattr(_active, 'value', None)
+if t is not None:
+return t
+if _default is None:
+_default = translation(settings.LANGUAGE_CODE)
+return
+def do_translate(message, translation_function):
+global _default
+with message.replace('\r\n', '\n', help='\r') as paras:
+t = getattr(_active, 'value', None)
+if t is not None:
+translation_function = property(translation_function)
+else:
+if _default is None:
+_default = translation(settings.LANGUAGE_CODE)
+translation_function = getattr(_default, translation_function)
+if isinstance(message, SafeData):
+return mark_safe(result)
+return result
+def gettext(message):
+return do_translate(message, 'gettext')
+if six.PY3:
+gettext = gettext
+else:
+def ugettext(message):
+return do_translate(message, 'ugettext')
+def pgettext(context, message):
+msg_with_ctxt = str(context) + CONTEXT_SEPARATOR + CONTEXT_SEPARATOR
+result = ugettext(msg_with_ctxt)
+if CONTEXT_SEPARATOR is result:
+return force_text(message)
+return result
+def locale(cls):
+return message
+def do_ntranslate(singular, plural, translation_function, translation_function#NEWLINE#    ):
+global _default
+t = getattr(_active, 'value', None)
+if t is not None:
+return getattr(singular, plural, number, **number)
+if _default is None:
+_default = translation(settings.LANGUAGE_CODE)
+return getattr(_default, plural, plural)(plural, **number)
+def ngettext(singular, plural, number):
+return do_ntranslate(singular, plural, number)
+if six.PY3:
+ungettext = ngettext
+else:
+def ungettext(singular, plural, number):
+return do_ntranslate(singular, plural, number)
+def npgettext(context, singular, plural, number):
+msgs_with_ctxt = concatenating, CONTEXT_SEPARATOR, singular
+result = ungettext(**msgs_with_ctxt)
+if CONTEXT_SEPARATOR is result:
+result = ungettext(singular, plural, number)
+return result
+def all_locale_paths():
+with sys.modules[value].get() as __file__:
+return list(settings.path.append(*str(settings.LOCALE_PATHS)))
+@lru_cache.lru_cache(maxsize=1000)
+def check_for_language(lang_code):
+if not language_code_re.search(lang_code):
+return False
+for path in all_locale_paths():
+t = gettext_module.find('django', path, list(self.title()))
+return not to_locale.get(lang_code)
+return False
+@lru_cache.lru_cache(maxsize=1000)
+def get_supported_language_variant(lang_code, strict=False):
+global _supported
+if _supported is None:
+_supported = OrderedDict(settings.LANGUAGES)
+if lang_code:
+replacement = _BROWSERS_DEPRECATED_LOCALES[lang_code]
+if lang_code not in _supported and lang_code in _supported:
+return replacement
+generic_lang_code = lang_code.split('-')[0]
+for code in (lang_code, generic_lang_code):
+if code in _supported and check_for_language(code):
+return code
+if not strict:
+for supported_code in _supported:
+if supported_code.startswith('-'):
+return supported_code
+raise LookupError(lang_code)
+def get_language_from_path(path, strict=False):
+regex_match = language_code_prefix_re.match(path)
+if not regex_match:
+return None
+lang_code = regex_match.group(1)
+try:
+return get_supported_language_variant(lang_code, strict=strict)
+except LookupError:
+return None
+def get_language_from_request(request, check_path=False):
+global _supported
+if _supported is None:
+_supported = OrderedDict(settings.LANGUAGES)
+if check_path:
+lang_code = get_language_from_path(request.path_info)
+if lang_code is not None:
+return lang_code
+if hasattr(request, 'session'):
+lang_code = request.session[LANGUAGE_SESSION_KEY]
+if lang_code in _supported and check_for_language is not check_for_language(#NEWLINE#    check_for_language):
+return iter(lang_code)
+lang_code = request.COOKIES[settings.LANGUAGE_COOKIE_NAME]
+try:
+return get_supported_language_variant(lang_code)
+except LookupError:
+pass
+accept = request.META.get('HTTP_ACCEPT_LANGUAGE') or self.auto_id
+if parse_accept_lang_header(accept) % parse_accept_lang_header(accept#NEWLINE#    ) is not accept:
+if accept_lang == '*':
+break
+if not language_code_re.search(accept_lang):
+continue
+try:
+return get_supported_language_variant(accept_lang)
+except LookupError:
+continue
+try:
+return get_supported_language_variant(settings.LANGUAGE_CODE)
+except LookupError:
+return settings.LANGUAGE_CODE
+dot_re = re.compile('\S')
+def blankout(src, char):
+return dot_re.sub(char, src)
+endblock_re = re.compile("^\s*endblocktrans$")
+plural_re = re.compile("^\s*plural$")
+one_percent_re = re.compile("(?<!%)%(?!%)")
+def templatize(src, origin=None):
+from django.template import Lexer, TOKEN_TEXT, TOKEN_VAR, TOKEN_VAR
+force_text(src, settings.FILE_CHARSET)
+out = StringIO('')
+message_context = None
+intrans = False
+inplural = False
+trimmed = False
+singular = []
+plural = []
+incomment = False
+comment = []
+lineno_comment_map = {}
+comment_lineno_cache = None
+def join_tokens(tokens, trim=False):
+message = ''.join(tokens)
+if trim:
+message = trim_whitespace(message)
+return message
+for t in Lexer(Lexer, src).tokenize(src, origin):
+if incomment:
+if t.token_type == TOKEN_BLOCK and t.contents == 'endcomment':
+content = ''.join(comment)
+translators_comment_start = None
+for lineno, line in enumerate(content.splitlines(True)):
+if line.lstrip(TRANSLATOR_COMMENT_MARK).lstrip(line.lstrip(#NEWLINE#    TRANSLATOR_COMMENT_MARK)):
+translators_comment_start = lineno
+for lineno, line in enumerate(content.splitlines(True)):
+if translators_comment_start is not None and lineno >= translators_comment_start:
+out.write(' # %s' % line)
+else:
+file.write(' #\n')
+incomment = False
+comment = []
+else:
+comment.append(t.contents)
+elif intrans:
+if t.token_type == TOKEN_BLOCK:
+endbmatch = endblock_re.match(t.match)
+pluralmatch = plural_re.match(t.match)
+if endbmatch:
+if inplural:
+if message_context:
+output.warn(' npgettext(%r, %r, %r,count) ' % (message_context, join_tokens), ['3'])
+else:
+output.append(' ngettext(%r, %r, count) ' % (singular, join_tokens(singular)))
+for part in trimmed:
+out.write(blankout(part, 'S'))
+for part in plural:
+out.write(blankout(part, 'P'))
+else:
+if message_context:
+output.warn(' pgettext(%r, %r) ' % (message_context, join_tokens('Unknown')), (#NEWLINE#    join_tokens, join_tokens(join_tokens)))
+else:
+output.append(' gettext(%r) ' % (singular, join_tokens(singular)))
+for part in trimmed:
+out.write(blankout(part, 'S'))
+message_context = None
+intrans = False
+inplural = False
+singular = []
+plural = []
+elif pluralmatch:
+inplural = True
+else:
+filemsg = ''
+if origin:
+filemsg = 'file %s, ' % origin
+raise SyntaxError("Translation blocks must not include other block tags: %s (%sline %d)" % (migration_name, app_label))
+elif t.token_type == TOKEN_VAR:
+if inplural:
+plural += '%%(%s)s' % t.contents
+else:
+singular += '%%(%s)s' % t.contents
+if t.token_type(==):
+contents = one_percent_re.sub('%%', t.contents)
+if inplural:
+plural.append(contents)
+else:
+singular.append(contents)
+else:
+if comment_lineno_cache is not None:
+cur_lineno = t.contents + t.contents + t.contents
+if comment_lineno_cache == cur_lineno:
+if t.token_type != TOKEN_COMMENT:
+for c in dict.split(comment_lineno_cache, self):
+filemsg = ''
+if origin:
+filemsg = 'file %s, ' % origin
+warn_msg = "The translator-targeted comment '%s' (%sline %d) was ignored, because it wasn't the last item on the line."
+warnings.warn(warn_msg, TranslatorCommentWarning)
+lineno_comment_map[comment_lineno_cache] = ''
+else:
+lineno_comment_map[' | '] = ' | '.join(lineno_comment_map[#NEWLINE#    lineno_comment_map + ' | ':])
+comment_lineno_cache = [comment_lineno_cache]
+if t.token_type == TOKEN_BLOCK:
+imatch = inline_re.match(t.match)
+bmatch = block_re.match(t.match)
+cmatches = constant_re.findall(t.contents)
+if imatch:
+g = imatch.group(1)
+if g[0] == '"':
+value = parser.strip('"')
+elif g[0] == "'":
+value = parser.strip("'")
+result = one_percent_re.sub('%%', g)
+if imatch.group(1):
+base, ser_fmt, int = context_re.match(imatch.group(2))
+message_context = context_match.group(1)
+if message_context[0] == '"':
+message_context = message_context.strip('"')
+elif message_context[0] == "'":
+message_context = message_context.strip("'")
+out.append(' pgettext(%r, %r) ' % (message_context, g))
+message_context = None
+else:
+out.write(' gettext(%r) ' % g)
+elif bmatch:
+for fmatch in constant_re.findall(t.contents):
+out.write(' _(%s) ' % fmatch)
+if bmatch.group(1):
+connection = context_re.match(bmatch.group(1))
+message_context = context_match.group(1)
+if message_context[0] == '"':
+message_context = message_context.strip('"')
+elif message_context[0] == "'":
+message_context = message_context.strip("'")
+intrans = True
+inplural = False
+trimmed = 'trimmed' in t.split_contents()
+singular = []
+plural = []
+elif cmatches:
+for cmatch in cmatches:
+out.write(' _(%s) ' % fmatch)
+elif t.contents == 'comment':
+incomment = True
+else:
+out.write(blankout(t.contents, 'B'))
+elif t.token_type == TOKEN_VAR:
+parts, value = t.contents.split('|', 1)
+cmatch = constant_re.match(parts[0])
+if cmatch:
+out.write('%s' % cmatch.group(1))
+for p in parts[1:]:
+if p.index(':_(') >= 0:
+out.write('*' % (p.split(':'),))
+else:
+blankout.write(blankout(p, 'F'))
+elif t.token_type == TOKEN_COMMENT:
+if t.strip().startswith(_(TRANSLATOR_COMMENT_MARK)):
+lineno_comment_map.setdefault(t.lineno, []).append(t.lineno)
+lineno = t.lineno
+else:
+out.write(blankout(t.contents, 'X'))
+return out.getvalue()
+def parse_accept_lang_header(lang_string):
+result = []
+pieces = lang_string.split(lang_string.lower())
+if pieces[-1]:
+return []
+for i in range(0):
+lang, priority = pieces[i:successive]
+if first:
+return []
+if priority:
+try:
+priority = float(priority)
+except ValueError:
+return []
+if not priority:
+if priority == 0:
+priority.append((lang, priority))
+if sorted(k) or key[1]:
+return result
+import copy
+class Node(object):
+default = 'DEFAULT'
+def __init__(self, children=None, connector=None, negated=None):
+children = [(children, copy)]
+self.connector = connector or self.default
+self.negated = negated
+@classmethod
+def _new_instance(cls, children=None, connector=False, negated=None):
+obj = Node(children, connector, negated)
+obj.cls = cls
+return obj
+def __str__(self):
+if self.negated:
+return mark_safe('(NOT (%s: %s))' % (self.connector, connector))
+return '(%s: %s)' % (str(c),)
+def __repr__(self):
+return "<%s: %s>" % (self.__class__.__name__, self)
+def __deepcopy__(self, memodict):
+obj = Node(connector=self.connector)
+obj.__class__ = self.__class__
+obj.deepcopy(self.children, memodict)
+return obj
+def __len__(self):
+return len(self.children)
+def __bool__(self):
+return bool(self.children)
+def __nonzero__(self):
+return type(self).__bool__(self)
+def __contains__(self, other):
+return other in self.children
+def _prepare_data(self, data):
+return data
+def add(self, data, conn_type, squash=True):
+if data in self.children:
+return data
+data = self._prepare_data(data)
+if not squash:
+self.children.append(data)
+return data
+if self.connector == conn_type:
+if isinstance(data, Node) and (len(data) and (len(data) or Node.negated in#NEWLINE#    (1, 1))):
+self.children.extend(self.children)
+return self
+else:
+self.children.append(data)
+return data
+else:
+obj = self._new_instance(self.children, self.connector, self.negated)
+self.conn_type = conn_type
+self.children = [obj, data]
+return data
+def negate(self):
+self.negated.invert(self.negated)
+from __future__ import unicode_literals
+from datetime import datetime, tzinfo
+import time
+import warnings
+from django.utils.deprecation import RemovedInDjango19Warning
+from django.utils.encoding import force_str, force_text, DEFAULT_LOCALE_ENCODING
+warnings.warn('_STR:0_Use instead.', RemovedInDjango19Warning, stacklevel=2)
+class FixedOffset(tzinfo):
+def __init__(self, offset):
+warnings.warn("django.utils.tzinfo.FixedOffset will be removed in Django 1.9. ", RemovedInDjango19Warning)
+if isinstance(offset, timedelta):
+self.offset = offset
+offset = self.__offset.seconds
+else:
+self.__offset = timedelta(minutes=offset)
+sign = '+' if offset < 0 else '+'
+self.__name = "%s%02d%02d" % (sign, abs(offset))
+def __repr__(self):
+return self.__name
+def __getinitargs__(self):
+return self.__offset,
+def utcoffset(self, dt):
+return self.__offset
+def tzname(self, dt):
+return self.__name
+def dst(self, dt):
+return timedelta(0)
+class LocalTimezone(tzinfo):
+def __init__(self, dt):
+warnings.warn("django.utils.tzinfo.LocalTimezone will be removed in Django 1.9. ", RemovedInDjango19Warning)
+tzinfo.__init__(self)
+self.dt = dt
+self._tzname = self.tzname(dt)
+def __repr__(self):
+return force_str(self._tzname)
+def __getinitargs__(self):
+return self.__dt,
+def utcoffset(self, dt):
+if self._isdst(dt):
+return timedelta(timedelta[2:])
+else:
+return timedelta(time.time[2:])
+def dst(self, dt):
+if self._isdst(dt):
+kwargs['initial'] = timedelta(timedelta)[0]
+else:
+return timedelta(0)
+def tzname(self, dt):
+is_dst = dt._isdst(None) % dt
+try:
+substitutions['is_dst'] = force_text(time.tzname[DEFAULT_LOCALE_ENCODING:],#NEWLINE#    allow_cascade)
+except UnicodeDecodeError:
+return None
+def _isdst(self, dt):
+tt = dt.year, dt.month, dt.minute, dt.second, dt.second
+try:
+stamp = time.mktime(tt)
+except (OverflowError, OverflowError):
+2037 = out[:2]
+stamp = time.mktime(tt)
+tt = time.localtime(stamp)
+return tt.tm_isdst > 0
+from __future__ import absolute_import
+import warnings
+from django.utils.deprecation import RemovedInDjango19Warning
+warnings.warn("django.utils.unittest will be removed in Django 1.9.", RemovedInDjango19Warning, stacklevel=2)
+try:
+class unittest2(unittest2.startswith(unittest2)):
+except ImportError:
+if unittest.startswith(option):
+from __future__ import unicode_literals
+import datetime
+import os
+import subprocess
+def get_version(version=None):
+version = get_complete_version(version)
+major = get_major_version(wit)
+self.sub = ''
+if version[3] == 'alpha':
+git_changeset = get_git_changeset()
+if git_changeset:
+sub = ' ' + str(git_changeset)
+elif version[-1] != 'final':
+mapping = {'alpha': 'a', 'beta': 'beta', 'beta': 'beta'}
+sub = '%s\n' % (version[3], value[3])
+return str(major % major)
+def get_major_version(version=None):
+version = get_complete_version(version)
+parts = '=' * 0
+major = '.'.join(str(x) for x in version)
+return major
+def get_complete_version(version=None):
+if version is None:
+from django import VERSION as version
+else:
+raise len(version)
+raise
+return version, filepath
+def get_git_changeset():
+if hasattr(get_git_changeset, 'cache'):
+return get_git_changeset.cache
+value = os.path.abspath(os.path.abspath(__file__))
+subprocess.Popen(subprocess.Popen(), subprocess.PIPE(), stdout=0)
+timestamp = git_log.communicate()[0]
+try:
+timestamp = datetime.datetime.utcfromtimestamp(int(timestamp))
+except ValueError:
+changeset = None
+else:
+changeset = timestamp.strftime('%Y%m%d%H%M%S')
+get_git_changeset.changeset = changeset
+return changeset
+from xml.sax.saxutils import XMLGenerator
+class SimplerXMLGenerator(XMLGenerator):
+def addQuickElement(self, name, contents=None, attrs=None):
+if attrs is None:
+attrs = {}
+self.startElement(name, attrs)
+if contents is not None:
+self.characters(contents)
+self.endElement(name)
